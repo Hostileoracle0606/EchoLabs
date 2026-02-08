@@ -36,6 +36,7 @@ interface EchoLensState {
   agentStatuses: Record<string, 'idle' | 'processing' | 'complete' | 'error'>;
 
   // Actions
+  setSessionId: (id: string) => void;
   setRecording: (recording: boolean) => void;
   addTranscriptChunk: (text: string, isFinal: boolean) => void;
   setInterimText: (text: string) => void;
@@ -49,7 +50,7 @@ interface EchoLensState {
 
 export const useEchoLensStore = create<EchoLensState>()(
   immer((set) => ({
-    sessionId: `session-${Date.now()}`,
+    sessionId: '', // Initialize empty to avoid hydration mismatch
     isRecording: false,
     transcriptChunks: [],
     interimText: '',
@@ -118,7 +119,13 @@ export const useEchoLensStore = create<EchoLensState>()(
         state.contextMatches = [];
         state.summaryBullets = [];
         state.agentStatuses = {};
+        state.agentStatuses = {};
         state.isRecording = false;
+      }),
+
+    setSessionId: (id: string) =>
+      set((state) => {
+        state.sessionId = id;
       }),
   }))
 );

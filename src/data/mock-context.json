@@ -2,133 +2,239 @@
   "emails": [
     {
       "id": "email_1",
-      "keywords": ["sarah", "q3", "report", "budget", "numbers", "final"],
-      "from": "Sarah Chen",
-      "subject": "Re: Q3 Budget Proposal — Final Numbers",
-      "date": "Jan 28, 2026",
-      "preview": "Hey, attached are the final Q3 numbers we discussed. The engineering allocation came in at $2.1M, which is 15% over the original estimate but within the revised...",
-      "avatarColor": "#5b8def"
-    },
-    {
-      "id": "email_2",
-      "keywords": ["mike", "partnership", "deal", "contract", "vendor"],
-      "from": "Mike Rodriguez",
-      "subject": "Partnership Agreement — Draft v3",
-      "date": "Jan 25, 2026",
-      "preview": "I've reviewed the latest terms from Vendor B. Their pricing is competitive but the SLA guarantees need work. Specifically, the uptime commitment of 99.5% is below our...",
-      "avatarColor": "#e5a000"
-    },
-    {
-      "id": "email_3",
-      "keywords": ["hiring", "engineers", "recruiting", "talent", "team", "hr"],
-      "from": "Lisa Park",
-      "subject": "Q1 Hiring Plan — Engineering Team",
-      "date": "Feb 1, 2026",
-      "preview": "Based on our headcount approval, we're targeting 5 senior engineers and 2 data scientists for Q1. I've already reached out to 3 recruiting firms and...",
-      "avatarColor": "#a855f7"
-    },
-    {
-      "id": "email_4",
-      "keywords": ["client", "feedback", "product", "launch", "demo"],
-      "from": "James Liu",
-      "subject": "Client Feedback — Post-Demo Summary",
-      "date": "Feb 3, 2026",
-      "preview": "Great news from yesterday's demo. The client was particularly impressed with the real-time analytics dashboard. They want to schedule a follow-up to discuss enterprise pricing...",
+      "keywords": [
+        "regulatory",
+        "antitrust",
+        "omnicorp",
+        "risk",
+        "eu",
+        "evelyn",
+        "break fee"
+      ],
+      "from": "Evelyn St. James",
+      "subject": "URGENT: Regulatory Headwinds — OmniCorp Deal",
+      "date": "Yesterday",
+      "preview": "Alex, legal just flagged a potential antitrust inquiry in Brussels regarding the OmniCorp deal. We need to factor a 5% break fee into the model to cover our downside risk...",
       "avatarColor": "#ef4444"
     },
     {
-      "id": "email_5",
-      "keywords": ["revenue", "sales", "quarterly", "growth", "enterprise"],
-      "from": "David Kim",
-      "subject": "Q3 Revenue Report — Enterprise Segment",
-      "date": "Jan 30, 2026",
-      "preview": "Enterprise revenue hit $4.2M this quarter, exceeding our target by 12%. The main drivers were the three new Fortune 500 accounts we closed in September...",
+      "id": "email_2",
+      "keywords": [
+        "retention",
+        "churn",
+        "ndr",
+        "multiple",
+        "valuation",
+        "rajiv"
+      ],
+      "from": "Rajiv Mehta",
+      "subject": "Validation of OmniCorp Cohort Data",
+      "date": "Today",
+      "preview": "My team finished the deep dive on OmniCorp's churn metrics. Net Dollar Retention is actually 118%, not 115% as reported in the CIM. The 12x ARR multiple is defensible given this stickiness...",
       "avatarColor": "#10b981"
+    },
+    {
+      "id": "email_3",
+      "keywords": [
+        "pension",
+        "risk",
+        "exposure",
+        "semiconductor",
+        "lp",
+        "julian"
+      ],
+      "from": "Julian Thorne",
+      "subject": "LP Concern — Tech Exposure (Teacher's Fund)",
+      "date": "Oct 15, 2025",
+      "preview": "The Teacher's Pension Fund is asking about our exposure to semiconductor volatility given the recent geopolitics. Can we prepare a one-pager on our hedging strategy before the quarterly call?...",
+      "avatarColor": "#e5a000"
+    },
+    {
+      "id": "email_4",
+      "keywords": [
+        "debt",
+        "leverage",
+        "financing",
+        "sofr",
+        "lbo",
+        "goldman"
+      ],
+      "from": "Goldman Sachs LevFin",
+      "subject": "Confidential: Debt Financing Terms — Project Blue Sky",
+      "date": "Oct 14, 2025",
+      "preview": "Term sheet attached for the Project Blue Sky leverage package. Spreads have widened to SOFR + 450bps due to credit market tightening. This impacts our LBO model returns by ~150bps...",
+      "avatarColor": "#a855f7"
+    },
+    {
+      "id": "email_5",
+      "keywords": [
+        "vertex",
+        "ai",
+        "markup",
+        "valuation",
+        "series b"
+      ],
+      "from": "Deal Team",
+      "subject": "Vertex AI — Series B Term Sheet Signed",
+      "date": "Oct 01, 2025",
+      "preview": "Great news. Vertex AI just closed their Series B led by Sequoia. Our stake is being marked up 140% from our entry valuation. This will significantly boost Fund III's Q3 IRR...",
+      "avatarColor": "#5b8def"
     }
   ],
   "documents": [
     {
       "id": "doc_1",
-      "keywords": ["q3", "report", "quarterly", "review", "revenue"],
-      "title": "Q3 2025 Quarterly Review.pdf",
-      "modified": "Jan 30, 2026",
-      "preview": "Executive Summary: Q3 revenue of $4.2M exceeded projections by 12%. Key drivers include enterprise segment growth and improved retention rates across all tiers...",
+      "keywords": [
+        "memo",
+        "investment",
+        "thesis",
+        "omnicorp",
+        "acquisition",
+        "ic"
+      ],
+      "title": "Project_Blue_Sky_IC_Memo.pdf",
+      "modified": "Oct 16, 2025",
+      "preview": "Investment Committee Memo. Target: OmniCorp. Ask: $150M Equity. Valuation: $1.2B (12x ARR). Strategic Rationale: Market consolidation play with CloudNexus synergies...",
       "fileType": "pdf"
     },
     {
       "id": "doc_2",
-      "keywords": ["budget", "spreadsheet", "allocation", "engineering", "finance"],
-      "title": "Engineering Budget FY2026.xlsx",
-      "modified": "Feb 2, 2026",
-      "preview": "Total engineering budget: $8.4M. Breakdown: Personnel $5.2M, Infrastructure $1.8M, Tools & Licenses $0.6M, Contingency $0.8M...",
+      "keywords": [
+        "irr",
+        "performance",
+        "fund iii",
+        "valuation",
+        "excel",
+        "waterfall"
+      ],
+      "title": "Fund_III_Q3_Performance.xlsx",
+      "modified": "Oct 14, 2025",
+      "preview": "Fund III Net IRR: 22.4%. TVPI: 1.8x. DPI: 0.4x. Top Performers: Vertex AI, HealthBridge. Watchlist: StreamLine Retail (-12% markup)...",
       "fileType": "xlsx"
     },
     {
       "id": "doc_3",
-      "keywords": ["roadmap", "product", "strategy", "features", "planning"],
-      "title": "Product Roadmap 2026.pptx",
-      "modified": "Jan 15, 2026",
-      "preview": "H1 priorities: AI-powered analytics (Feb), Enterprise SSO (Mar), Mobile app v2 (Apr). H2 priorities: International expansion, API marketplace...",
-      "fileType": "pptx"
+      "keywords": [
+        "diligence",
+        "kpmg",
+        "audit",
+        "tax",
+        "findings",
+        "red flag"
+      ],
+      "title": "Due_Diligence_Red_Flag_Report.docx",
+      "modified": "Oct 10, 2025",
+      "preview": "KPMG Financial & Tax Due Diligence. Exec Summary: No material accounting irregularities found. Adjusted EBITDA for FY24 is $98M. IT audit pending...",
+      "fileType": "docx"
     },
     {
       "id": "doc_4",
-      "keywords": ["proposal", "vendor", "partnership", "contract", "terms"],
-      "title": "Vendor B Partnership Proposal.docx",
-      "modified": "Jan 22, 2026",
-      "preview": "Proposed terms: 3-year agreement with annual review. Pricing: $450K/year base + usage. SLA: 99.9% uptime guarantee with $10K/hr credit for violations...",
-      "fileType": "docx"
+      "keywords": [
+        "macro",
+        "inflation",
+        "rates",
+        "outlook",
+        "market",
+        "goldman"
+      ],
+      "title": "Global_Macro_Outlook_Q4.pptx",
+      "modified": "Oct 01, 2025",
+      "preview": "Soft Landing vs Recession. Base case: fed cuts rates by 25bps in Q4. Inflation stabilizing at 2.8%. Geopolitical risks remain elevated...",
+      "fileType": "pptx"
     }
   ],
   "calendar": [
     {
       "id": "cal_1",
-      "keywords": ["standup", "daily", "team", "sync", "morning"],
-      "title": "Daily Engineering Standup",
-      "time": "9:00 AM - 9:15 AM",
-      "date": "Tomorrow",
-      "attendees": ["Team (8 people)"]
+      "keywords": [
+        "ic",
+        "committee",
+        "review",
+        "fund iii",
+        "investment"
+      ],
+      "title": "Investment Committee Review",
+      "time": "2:00 PM - 4:00 PM",
+      "date": "Today",
+      "attendees": [
+        "Evelyn St. James",
+        "Rajiv Mehta",
+        "Julian Thorne"
+      ]
     },
     {
       "id": "cal_2",
-      "keywords": ["board", "review", "quarterly", "presentation"],
-      "title": "Q3 Board Review",
-      "time": "2:00 PM - 4:00 PM",
-      "date": "Feb 14, 2026",
-      "attendees": ["Board Members", "C-Suite"]
+      "keywords": [
+        "vertex",
+        "ai",
+        "board",
+        "meeting"
+      ],
+      "title": "Vertex AI Board Meeting",
+      "time": "10:00 AM - 12:00 PM",
+      "date": "Tomorrow",
+      "attendees": [
+        "Alex Chen",
+        "Vertex CEO"
+      ]
     },
     {
       "id": "cal_3",
-      "keywords": ["client", "demo", "product", "meeting"],
-      "title": "Product Demo — Acme Corp",
-      "time": "11:00 AM - 12:00 PM",
-      "date": "Feb 10, 2026",
-      "attendees": ["James Liu", "Sarah Chen", "Acme Corp (3)"]
+      "keywords": [
+        "omnicorp",
+        "negotiation",
+        "pricing",
+        "deal"
+      ],
+      "title": "Project Blue Sky - Final Negotiation",
+      "time": "1:00 PM - 2:00 PM",
+      "date": "Friday",
+      "attendees": [
+        "Alex Chen",
+        "OmniCorp CEO",
+        "Legal Team"
+      ]
     }
   ],
   "slack": [
     {
       "id": "slack_1",
-      "keywords": ["deployment", "release", "production", "deploy", "ship"],
-      "channel": "#engineering",
-      "from": "DeployBot",
-      "message": "v2.4.1 deployed to production. All health checks passing. Release notes: performance improvements, bug fixes for dashboard loading...",
-      "time": "2 hours ago"
+      "keywords": [
+        "lbo",
+        "model",
+        "irr",
+        "rates",
+        "synergy"
+      ],
+      "channel": "#deal-blue-sky",
+      "from": "Analyst Team",
+      "message": "Updated the LBO model with the SOFR + 450bps financing terms. IRR drops to 19.5% in the base case, but rises to 23% if we include the CloudNexus synergies.",
+      "time": "1 hour ago"
     },
     {
       "id": "slack_2",
-      "keywords": ["bug", "issue", "error", "crash", "fix"],
-      "channel": "#bugs",
-      "from": "QA Team",
-      "message": "Critical: Dashboard timeout on large datasets (>10K rows). Affects 3 enterprise accounts. Workaround: pagination. Fix ETA: tomorrow...",
-      "time": "4 hours ago"
+      "keywords": [
+        "vertex",
+        "exit",
+        "ipo",
+        "secondary"
+      ],
+      "channel": "#investment-committee",
+      "from": "Evelyn St. James",
+      "message": "Agenda for Monday is locked. We are doing a deep dive on Vertex AI's exit options. I want to see a comp analysis for a potential IPO vs Secondary Sale.",
+      "time": "3 hours ago"
     },
     {
       "id": "slack_3",
-      "keywords": ["hiring", "candidate", "interview", "offer"],
-      "channel": "#hiring",
-      "from": "Lisa Park",
-      "message": "Update: Extended offers to 2 senior engineers (starting March). 3 more candidates in final round this week. Pipeline looking strong...",
+      "keywords": [
+        "lp",
+        "distro",
+        "capital",
+        "call"
+      ],
+      "channel": "#client-relations",
+      "from": "Julian Thorne",
+      "message": "Just got off the phone with the Endowment. They are happy with the Vertex markup but want clarity on when we expect the next capital call.",
       "time": "Yesterday"
     }
   ]

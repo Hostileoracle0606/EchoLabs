@@ -24,13 +24,18 @@ export function MermaidChart({ code, id, title, narration }: MermaidChartProps) 
         const mermaid = (await import('mermaid')).default;
         mermaid.initialize({
           startOnLoad: false,
-          theme: 'dark',
+          theme: 'base',
           themeVariables: {
-            primaryColor: '#00e5a0',
-            primaryTextColor: '#e4e4f0',
-            lineColor: '#5b8def',
-            secondaryColor: '#1a1a28',
-            tertiaryColor: '#151520',
+            primaryColor: '#eff6ff',
+            primaryTextColor: '#1e293b',
+            primaryBorderColor: '#93c5fd',
+            lineColor: '#6366f1',
+            secondaryColor: '#f0fdf4',
+            tertiaryColor: '#f5f3ff',
+            noteBkgColor: '#fefce8',
+            noteTextColor: '#1e293b',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: '13px',
           },
         });
 
@@ -42,7 +47,7 @@ export function MermaidChart({ code, id, title, narration }: MermaidChartProps) 
       } catch {
         if (!cancelled && ref.current) {
           setError(true);
-          ref.current.innerHTML = `<pre style="color:#f87171;font-size:12px;padding:8px;white-space:pre-wrap">${code}</pre>`;
+          ref.current.innerHTML = `<pre style="color:#dc2626;font-size:12px;padding:8px;white-space:pre-wrap;background:#fef2f2;border-radius:8px">${code}</pre>`;
         }
       }
     }
@@ -53,17 +58,17 @@ export function MermaidChart({ code, id, title, narration }: MermaidChartProps) 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', duration: 0.6 }}
-      className="rounded-xl border border-white/10 bg-[#1a1a28] p-4"
+      transition={{ type: 'spring', duration: 0.5 }}
+      className="rounded-xl border border-slate-200 bg-slate-50/50 p-4"
     >
       {title && (
-        <h3 className="mb-2 text-sm font-medium text-white/70">{title}</h3>
+        <h3 className="mb-3 text-sm font-medium text-slate-700">{title}</h3>
       )}
-      <div ref={ref} className="overflow-x-auto" />
+      <div ref={ref} className="mermaid-container overflow-x-auto" />
       {narration && !error && (
-        <p className="mt-2 text-xs text-white/50 italic">{narration}</p>
+        <p className="mt-3 text-xs leading-relaxed text-slate-500 italic">{narration}</p>
       )}
     </motion.div>
   );

@@ -24,3 +24,20 @@ RULES:
 - Infer reasonable data when only partial numbers are given.
 - Use descriptive labels and a title in the diagram.
 - Keep diagrams simple and readable (max 8-10 items).`;
+
+export const CHART_REPAIR_PROMPT = `You are a Mermaid diagram expert. The following Mermaid code has syntax errors. Your job is to FIX it.
+
+You will be given:
+1. The faulty Mermaid code.
+2. (Optional) An error message or context.
+
+Output ONLY valid JSON with this schema:
+{
+  "mermaid": "<FIXED raw Mermaid code, no markdown fences>",
+  "explanation": "<brief explanation of what you fixed>"
+}
+
+RULES:
+- Do NOT change the data or the meaning of the chart.
+- strictly fix the SYNTAX.
+- If the diagram type is deprecated or invalid, switch to a standard type (e.g., 'pie', 'graph TD').`;

@@ -16,6 +16,7 @@ const ChartRequestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  let sessionId = '';
   try {
     const body = await request.json();
     const parsed = ChartRequestSchema.safeParse(body);
@@ -27,12 +28,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    broadcast('agent:status', parsed.data.sessionId, {
+    sessionId = parsed.data.sessionId;
+
+    broadcast('agent:status', sessionId, {
       agent: 'chart',
       status: 'processing',
     });
 
     const result = await generateChart(parsed.data);
+    console.log('[Chart Agent] Generated Result:', result);
 
     const chartPayload: ChartPayload = {
       mermaidCode: result.mermaidCode,
@@ -42,8 +46,9 @@ export async function POST(request: NextRequest) {
       narration: result.narration,
     };
 
-    broadcast('chart:render', parsed.data.sessionId, chartPayload);
-    broadcast('agent:status', parsed.data.sessionId, {
+    console.log('[Chart Agent] Broadcasting Payload:', chartPayload);
+    broadcast('chart:render', sessionId, chartPayload);
+    broadcast('agent:status', sessionId, {
       agent: 'chart',
       status: 'complete',
     });
@@ -51,11 +56,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Chart Agent] Error:', error);
-    broadcast('agent:status', parsed?.data?.sessionId ?? '', {
-      agent: 'chart',
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Chart generation failed',
-    });
+    if (sessionId) {
+      broadcast('agent:status', sessionId, {
+        agent: 'chart',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Chart generation failed',
+      });
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

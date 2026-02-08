@@ -9,7 +9,10 @@ const OrchestratorRequestSchema = z.object({
   context: z.string().optional(),
 });
 
+import { broadcast } from '@/websocket/ws-server';
+
 export async function POST(request: NextRequest) {
+  let sessionId = '';
   try {
     const body = await request.json();
     const parsed = OrchestratorRequestSchema.safeParse(body);
@@ -21,11 +24,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    sessionId = parsed.data.sessionId;
+
+    // 1. Set status to processing
+    broadcast('agent:status', sessionId, {
+      agent: 'orchestrator',
+      status: 'processing',
+    });
+
     const result = await processTranscript(parsed.data);
+
+    // 2. Set status to complete
+    broadcast('agent:status', sessionId, {
+      agent: 'orchestrator',
+      status: 'complete',
+    });
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Orchestrator] Error:', error);
+
+    if (sessionId) {
+      broadcast('agent:status', sessionId, {
+        agent: 'orchestrator',
+        status: 'error',
+      });
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

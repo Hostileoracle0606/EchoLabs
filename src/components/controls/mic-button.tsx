@@ -93,20 +93,20 @@ export function MicButton() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={handleToggle}
-      className={`relative flex h-16 w-16 items-center justify-center rounded-full transition-colors ${
-        isRecording
-          ? 'bg-red-500 shadow-lg shadow-red-500/30'
-          : 'bg-[#00e5a0] shadow-lg shadow-[#00e5a0]/30'
-      }`}
+      className={`relative flex h-10 w-10 items-center justify-center rounded-xl transition-all ${isRecording
+          ? 'bg-red-500 shadow-lg shadow-red-500/25'
+          : 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25'
+        }`}
+      title={isRecording ? 'Stop recording' : 'Start recording'}
     >
       {isRecording ? (
         <motion.div
-          animate={{ scale: [1, 1.2, 1] }}
+          animate={{ scale: [1, 1.15, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="h-5 w-5 rounded-sm bg-white"
+          className="h-3.5 w-3.5 rounded-sm bg-white"
         />
       ) : (
-        <svg className="h-6 w-6 text-[#0d0d14]" fill="currentColor" viewBox="0 0 24 24">
+        <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
           <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
         </svg>
@@ -114,9 +114,9 @@ export function MicButton() {
 
       {isRecording && (
         <motion.div
-          animate={{ scale: [1, 1.4], opacity: [0.4, 0] }}
+          animate={{ scale: [1, 1.5], opacity: [0.3, 0] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="absolute inset-0 rounded-full bg-red-500"
+          className="absolute inset-0 rounded-xl bg-red-500"
         />
       )}
     </motion.button>

@@ -9,21 +9,28 @@ interface ConnectedClient {
   sessionId: string | null;
 }
 
-let wss: WebSocketServer | null = null;
-const clients = new Map<WebSocket, ConnectedClient>();
+// Use global scope to share WSS and Clients map across API routes and server
+const globalForWs = global as unknown as {
+  wss: WebSocketServer | null;
+  clients: Map<WebSocket, ConnectedClient> | null;
+};
 
-/**
- * Initialize the WebSocket server in `noServer` mode.
- *
- * Why noServer? In dev mode, Next.js uses its own WebSocket for HMR
- * (Hot Module Replacement) on /_next/webpack-hmr. If we attach `ws`
- * directly to the HTTP server via `{ server }`, it intercepts ALL
- * upgrade requests — including HMR — and crashes on invalid frame
- * data. Using `noServer` + manual upgrade handling lets us only
- * accept connections on our `/ws` path.
- */
+let wss: WebSocketServer | null = globalForWs.wss || null;
+const clients: Map<WebSocket, ConnectedClient> =
+  globalForWs.clients || new Map<WebSocket, ConnectedClient>();
+
+if (!globalForWs.clients) {
+  globalForWs.clients = clients;
+}
+
 export function initWebSocketServer(server: HttpServer): WebSocketServer {
+  if (globalForWs.wss) {
+    wss = globalForWs.wss;
+    return wss as WebSocketServer;
+  }
+
   wss = new WebSocketServer({ noServer: true });
+  globalForWs.wss = wss;
 
   wss.on('connection', (ws: WebSocket) => {
     clients.set(ws, { ws, sessionId: null });
@@ -66,7 +73,11 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
 }
 
 export function broadcast<T>(event: WsEventType, sessionId: string, payload: T): void {
-  if (!wss) return;
+  console.log(`[WS] Broadcasting ${event} to session ${sessionId}. WSS exists: ${!!wss}. Clients: ${clients.size}`);
+  if (!wss) {
+    console.error('[WS] Error: WebSocketServer is not initialized!');
+    return;
+  }
 
   const message = serializeWsMessage(createWsMessage(event, sessionId, payload));
 

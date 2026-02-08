@@ -15,6 +15,7 @@ const ContextRequestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  let sessionId = '';
   try {
     const body = await request.json();
     const parsed = ContextRequestSchema.safeParse(body);
@@ -26,7 +27,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    broadcast('agent:status', parsed.data.sessionId, {
+    sessionId = parsed.data.sessionId;
+
+    broadcast('agent:status', sessionId, {
       agent: 'context',
       status: 'processing',
     });
@@ -45,14 +48,14 @@ export async function POST(request: NextRequest) {
       }
 
       for (const [matchType, matches] of grouped) {
-        broadcast('context:match', parsed.data.sessionId, {
+        broadcast('context:match', sessionId, {
           matchType,
           matches,
         });
       }
     }
 
-    broadcast('agent:status', parsed.data.sessionId, {
+    broadcast('agent:status', sessionId, {
       agent: 'context',
       status: 'complete',
     });
@@ -60,11 +63,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Context Agent] Error:', error);
-    broadcast('agent:status', parsed.data.sessionId, {
-      agent: 'context',
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
+    if (sessionId) {
+      broadcast('agent:status', sessionId, {
+        agent: 'context',
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
