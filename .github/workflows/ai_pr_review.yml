@@ -41,7 +41,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           REPO: ${{ github.repository }}
         run: |
-          python .github/scripts/ai_pr_review.py
+          python .github/workflows/ai_pr_review.py
 
       - name: Post review comment to PR
         env:
