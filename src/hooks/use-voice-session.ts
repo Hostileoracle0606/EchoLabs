@@ -37,14 +37,16 @@ export function useVoiceSession({
       streamRef.current = null;
     }
     if (wsRef.current) {
-      wsRef.current.send(
-        JSON.stringify({
-          event: 'voice:stop',
-          sessionId,
-          timestamp: Date.now(),
-          payload: {},
-        })
-      );
+      if (wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            event: 'voice:stop',
+            sessionId,
+            timestamp: Date.now(),
+            payload: {},
+          })
+        );
+      }
       wsRef.current.close();
       wsRef.current = null;
     }

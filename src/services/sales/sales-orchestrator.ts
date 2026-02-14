@@ -131,7 +131,7 @@ export async function processSalesTranscript(input: {
     broadcast('sales:coaching', sessionId, { ...envelope, tips });
   }
 
-  const warnings = complianceEngine.evaluate(text, speaker);
+  const warnings = speaker === 'agent' ? complianceEngine.evaluate(text, speaker) : [];
   if (warnings.length > 0) {
     state.complianceWarnings.push(...warnings);
     broadcast('sales:compliance', sessionId, { ...envelope, warnings });
@@ -143,26 +143,34 @@ export async function processSalesTranscript(input: {
   broadcast('sales:summary', sessionId, { ...envelope, summary: state.summary });
 
   if (objections.length > 0 || signals.length > 0 || steps.length > 0) {
-    await updateCrmTool.execute({
-      opportunityId: callId,
-      updates: {
-        objections: objections.map((o) => o.type),
-        buyingSignals: signals.map((s) => s.type),
-        nextSteps: steps.map((s) => s.text),
-        stage: state.stage,
-      },
-    });
+    void updateCrmTool
+      .execute({
+        opportunityId: callId,
+        updates: {
+          objections: objections.map((o) => o.type),
+          buyingSignals: signals.map((s) => s.type),
+          nextSteps: steps.map((s) => s.text),
+          stage: state.stage,
+        },
+      })
+      .catch((err) => {
+        console.error('[Sales Orchestrator] CRM update failed:', err);
+      });
   }
 
   // TODO: When Clientzone API is available, provide summary + action items.
   if (state.summary) {
-    await getClientzoneAdapter().sendSummary({
-      callId,
-      sessionId,
-      summary: state.summary,
-      nextSteps: state.nextSteps,
-      actionItems: state.nextSteps.map((s) => s.text),
-    });
+    void getClientzoneAdapter()
+      .sendSummary({
+        callId,
+        sessionId,
+        summary: state.summary,
+        nextSteps: state.nextSteps,
+        actionItems: state.nextSteps.map((s) => s.text),
+      })
+      .catch((err) => {
+        console.error('[Sales Orchestrator] Clientzone summary failed:', err);
+      });
   }
 
   return {

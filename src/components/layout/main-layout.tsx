@@ -131,7 +131,7 @@ export function MainLayout() {
           <div className="flex items-center gap-2 rounded-full bg-[var(--bg-secondary)] px-3 py-1.5 border border-[var(--glass-border)]">
             <span className="text-xs font-medium text-[var(--foreground-muted)]">Stage</span>
             <span className="text-xs font-semibold text-[var(--foreground)] capitalize">
-              {salesStage.replace('_', ' ')}
+              {salesStage.replaceAll('_', ' ')}
             </span>
           </div>
           {isRecording ? (

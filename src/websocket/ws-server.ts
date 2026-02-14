@@ -3,6 +3,8 @@ import type { Server as HttpServer, IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
 import { serializeWsMessage, createWsMessage, parseWsMessage } from './ws-events';
 import { getVoiceSessionManager } from '@/services/voice/voice-session-manager';
+import { resetSalesSession } from '@/services/sales/sales-orchestrator';
+import { getTranscriptStore } from '@/services/transcript/transcript-store';
 import type { WsEventType } from '@/types/events';
 
 interface ConnectedClient {
@@ -74,6 +76,8 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
         const sessionId = msg.sessionId || client?.sessionId;
         if (sessionId) {
           await getVoiceSessionManager().stopSession(sessionId);
+          resetSalesSession(sessionId);
+          getTranscriptStore().resetSession(sessionId);
         }
       }
 
@@ -87,11 +91,27 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
     });
 
     ws.on('close', () => {
+      const client = clients.get(ws);
+      if (client?.sessionId) {
+        void getVoiceSessionManager().stopSession(client.sessionId).catch((err) => {
+          console.error('[WS] Failed to stop voice session:', err);
+        });
+        resetSalesSession(client.sessionId);
+        getTranscriptStore().resetSession(client.sessionId);
+      }
       clients.delete(ws);
     });
 
     ws.on('error', (err) => {
       console.error('[WS] Client error:', err.message);
+      const client = clients.get(ws);
+      if (client?.sessionId) {
+        void getVoiceSessionManager().stopSession(client.sessionId).catch((error) => {
+          console.error('[WS] Failed to stop voice session after error:', error);
+        });
+        resetSalesSession(client.sessionId);
+        getTranscriptStore().resetSession(client.sessionId);
+      }
       clients.delete(ws);
     });
   });

@@ -1,6 +1,4 @@
 import WebSocket from 'ws';
-// @ts-ignore
-import fetch from 'node-fetch';
 
 // Configuration
 const API_URL = 'http://localhost:3000/api/orchestrator';
@@ -30,7 +28,12 @@ const DEMO_SCRIPT = [
     }
 ];
 
+const fetchFn = globalThis.fetch;
+
 async function runSimulation() {
+    if (!fetchFn) {
+        throw new Error('Global fetch is not available. Use Node 18+ or add a fetch polyfill.');
+    }
     console.log(`🚀 Starting Simulation: Apex Horizon Capital Demo`);
     console.log(`\n⚠️  IMPORTANT: Open this URL in your browser to see the results:`);
     console.log(`👉 http://localhost:3000/?session=${SESSION_ID}\n`);
@@ -62,7 +65,7 @@ async function runSimulation() {
 
         try {
             const start = Date.now();
-            const res = await fetch(API_URL, {
+            const res = await fetchFn(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

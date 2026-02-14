@@ -1,6 +1,4 @@
 import WebSocket from 'ws';
-// @ts-ignore
-import fetch from 'node-fetch';
 
 /**
  * 🎤 Momentum Keynote Demo Simulation
@@ -133,11 +131,16 @@ const KEYNOTE_SCRIPT = [
 // 🎮 SIMULATION ENGINE
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const fetchFn = globalThis.fetch;
+
 async function runKeynoteDemo() {
+    if (!fetchFn) {
+        throw new Error('Global fetch is not available. Use Node 18+ or add a fetch polyfill.');
+    }
     console.log('\n');
     console.log('╔══════════════════════════════════════════════════════════════════╗');
     console.log('║                                                                   ║');
-    console.log('║        🎤  ECHOLENS KEYNOTE DEMO SIMULATION  🎤                   ║');
+    console.log('║        🎤  MOMENTUM KEYNOTE DEMO SIMULATION  🎤                   ║');
     console.log('║                                                                   ║');
     console.log('║    Watch as Momentum proves its value during this presentation   ║');
     console.log('║                                                                   ║');
@@ -182,7 +185,7 @@ async function runKeynoteDemo() {
 
         try {
             const start = Date.now();
-            const res = await fetch(API_URL, {
+            const res = await fetchFn(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -8,6 +8,8 @@
 npm install
 ```
 
+Node 18+ is recommended (required for global `fetch` in the simulation scripts).
+
 2. Start the app with WebSocket support:
 
 ```bash
@@ -75,5 +77,4 @@ The UI listens for:
 - `sales:stage`, `sales:objection`, `sales:buying-signal`, `sales:next-step`
 - `sales:coaching`, `sales:compliance`, `sales:summary`
 - `voice:status`
-
 

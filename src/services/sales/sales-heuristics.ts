@@ -71,7 +71,7 @@ export function detectNextSteps(text: string): NextStep[] {
 
 export function inferStage(text: string, previousStage: SalesStage): SalesStage {
   if (/\b(overview|agenda|introduction)\b/i.test(text)) return 'opening';
-  if (/\b(pain point|current process|workflow|needs)\b/i.test(text)) return 'discovery';
+  if (/\b(pain points?|current process|workflow|needs)\b/i.test(text)) return 'discovery';
   if (/\b(demo|show|walk through|features)\b/i.test(text)) return 'presentation';
   if (/\b(concern|objection|hesitant)\b/i.test(text)) return 'objection_handling';
   if (/\b(next step|contract|sign|close)\b/i.test(text)) return 'closing';
