@@ -1,3 +1,2 @@
-export { Aura, AuraHero } from './Aura';
-export { AuraCanvas } from './AuraCanvas';
-export { AuraPhysics, ParticleSystem, RippleSystem } from './aura-physics';
+export { AuraHero } from './AuraHero';
+export { AuraShowcase } from './AuraShowcase';

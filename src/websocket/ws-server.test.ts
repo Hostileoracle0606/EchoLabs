@@ -85,15 +85,15 @@ describe('WebSocketServer', () => {
     const msg1Promise = waitForMessage(ws1);
     const msg2Promise = waitForMessage(ws2);
 
-    broadcast('chart:render', 'session-1', { mermaidCode: 'pie title Test' });
+    broadcast('agent:chart', 'session-1', { mermaidCode: 'pie title Test' });
 
     const [msg1, msg2] = await Promise.all([msg1Promise, msg2Promise]);
     const parsed1 = JSON.parse(msg1);
     const parsed2 = JSON.parse(msg2);
 
-    expect(parsed1.event).toBe('chart:render');
+    expect(parsed1.event).toBe('agent:chart');
     expect(parsed1.payload.mermaidCode).toBe('pie title Test');
-    expect(parsed2.event).toBe('chart:render');
+    expect(parsed2.event).toBe('agent:chart');
 
     ws1.close();
     ws2.close();
@@ -132,12 +132,12 @@ describe('WebSocketServer', () => {
 
     const msg1Promise = waitForMessage(ws1);
 
-    broadcast('chart:render', 'session-1', { test: true });
+    broadcast('agent:chart', 'session-1', { test: true });
 
     const msg1 = await msg1Promise;
     await delay(100);
 
-    expect(JSON.parse(msg1).event).toBe('chart:render');
+    expect(JSON.parse(msg1).event).toBe('agent:chart');
     expect(ws2Received).toBe(false);
 
     ws1.close();

@@ -3,26 +3,26 @@ import { createWsMessage, serializeWsMessage, parseWsMessage } from './ws-events
 
 describe('WsEvents', () => {
   it('creates a well-formed WsMessage', () => {
-    const msg = createWsMessage('chart:render', 'session-1', { mermaidCode: 'pie title Test' });
+    const msg = createWsMessage('agent:chart', 'session-1', { mermaidCode: 'pie title Test' });
 
-    expect(msg.event).toBe('chart:render');
+    expect(msg.event).toBe('agent:chart');
     expect(msg.sessionId).toBe('session-1');
     expect(msg.timestamp).toBeGreaterThan(0);
     expect(msg.payload).toEqual({ mermaidCode: 'pie title Test' });
   });
 
   it('serializes a message to JSON string', () => {
-    const msg = createWsMessage('summary:update', 'session-2', { bullets: [] });
+    const msg = createWsMessage('agent:summary', 'session-2', { bullets: [] });
     const serialized = serializeWsMessage(msg);
 
     expect(typeof serialized).toBe('string');
     const parsed = JSON.parse(serialized);
-    expect(parsed.event).toBe('summary:update');
+    expect(parsed.event).toBe('agent:summary');
   });
 
   it('parses a valid JSON message', () => {
     const json = JSON.stringify({
-      event: 'chart:render',
+      event: 'agent:chart',
       sessionId: 's1',
       timestamp: 12345,
       payload: { data: 'test' },
@@ -30,7 +30,7 @@ describe('WsEvents', () => {
 
     const parsed = parseWsMessage(json);
     expect(parsed).not.toBeNull();
-    expect(parsed!.event).toBe('chart:render');
+    expect(parsed!.event).toBe('agent:chart');
     expect(parsed!.sessionId).toBe('s1');
   });
 

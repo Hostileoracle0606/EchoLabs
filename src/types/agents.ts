@@ -31,6 +31,7 @@ export type MermaidChartType =
   | 'erDiagram';
 
 export interface ChartAgentResponse {
+  id?: string;
   mermaidCode: string;
   chartType: MermaidChartType;
   title: string;

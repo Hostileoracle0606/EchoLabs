@@ -11,9 +11,12 @@ const navLinks = [
     { label: 'The Aura', href: '#aura' },
 ];
 
+import { useAuth } from '@/contexts/mock-auth-context';
+
 export function Header() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { user, signIn, signOut, isLoading } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -60,18 +63,42 @@ export function Header() {
 
                     {/* Desktop Auth */}
                     <div className="hidden md:flex items-center gap-3">
-                        <Link
-                            href="/sign-in"
-                            className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors px-4 py-2"
-                        >
-                            Sign In
-                        </Link>
-                        <Link
-                            href="/sign-up"
-                            className="btn-primary text-sm py-2.5 px-5"
-                        >
-                            Get Started
-                        </Link>
+                        {isLoading ? (
+                            <div className="w-24 h-9 bg-slate-100 rounded-lg animate-pulse" />
+                        ) : user ? (
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-[var(--foreground)]">
+                                    {user.name}
+                                </span>
+                                <button
+                                    onClick={() => signOut()}
+                                    className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors px-3 py-2"
+                                >
+                                    Sign Out
+                                </button>
+                                <Link
+                                    href="/app"
+                                    className="btn-primary text-sm py-2 px-4"
+                                >
+                                    Dashboard
+                                </Link>
+                            </div>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => signIn()}
+                                    className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors px-4 py-2"
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    onClick={() => signIn()}
+                                    className="btn-primary text-sm py-2.5 px-5"
+                                >
+                                    Get Started
+                                </button>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -124,20 +151,50 @@ export function Header() {
                                 transition={{ delay: 0.3 }}
                                 className="mt-8 pt-8 border-t border-[var(--glass-border)] space-y-4"
                             >
-                                <Link
-                                    href="/sign-in"
-                                    className="block text-center py-3 text-[var(--foreground-muted)]"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    Sign In
-                                </Link>
-                                <Link
-                                    href="/sign-up"
-                                    className="btn-primary block text-center"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    Get Started
-                                </Link>
+                                {user ? (
+                                    <>
+                                        <div className="text-center py-2 font-medium">
+                                            Hi, {user.name}
+                                        </div>
+                                        <Link
+                                            href="/app"
+                                            className="btn-primary block text-center"
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                            Dashboard
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                signOut();
+                                                setIsMobileMenuOpen(false);
+                                            }}
+                                            className="block w-full text-center py-3 text-[var(--foreground-muted)]"
+                                        >
+                                            Sign Out
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                signIn();
+                                                setIsMobileMenuOpen(false);
+                                            }}
+                                            className="block w-full text-center py-3 text-[var(--foreground-muted)]"
+                                        >
+                                            Sign In
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                signIn();
+                                                setIsMobileMenuOpen(false);
+                                            }}
+                                            className="btn-primary block w-full text-center"
+                                        >
+                                            Get Started
+                                        </button>
+                                    </>
+                                )}
                             </motion.div>
                         </nav>
                     </motion.div>

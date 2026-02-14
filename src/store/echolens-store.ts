@@ -84,8 +84,13 @@ export const useEchoLensStore = create<EchoLensState>()(
 
     addChart: (chart) =>
       set((state) => {
-        state.charts.unshift(chart); // Most recent first
-        if (state.charts.length > 10) state.charts.pop(); // Keep max 10
+        const existingIndex = state.charts.findIndex((c) => c.id && c.id === chart.id);
+        if (existingIndex !== -1) {
+          state.charts[existingIndex] = chart;
+        } else {
+          state.charts.unshift(chart); // Most recent first
+          if (state.charts.length > 10) state.charts.pop(); // Keep max 10
+        }
       }),
 
     addReferences: (refs) =>

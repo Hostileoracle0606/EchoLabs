@@ -1,11 +1,12 @@
 export type WsEventType =
   | 'transcript:update'
-  | 'chart:render'
-  | 'reference:found'
-  | 'context:match'
-  | 'summary:update'
   | 'agent:status'
   | 'error'
+  | 'session:start'
+  | 'agent:chart'
+  | 'agent:reference'
+  | 'agent:context'
+  | 'agent:summary'
   | 'session:start'
   | 'session:end';
 
@@ -17,6 +18,7 @@ export interface WsMessage<T = unknown> {
 }
 
 export interface ChartPayload {
+  id?: string;
   mermaidCode: string;
   chartType: string;
   title: string;

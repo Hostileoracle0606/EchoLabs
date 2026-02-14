@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     };
 
     console.log('[Chart Agent] Broadcasting Payload:', chartPayload);
-    broadcast('chart:render', sessionId, chartPayload);
+    broadcast('agent:chart', sessionId, chartPayload);
     broadcast('agent:status', sessionId, {
       agent: 'chart',
       status: 'complete',

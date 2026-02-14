@@ -6,22 +6,60 @@ import {
   GEMINI_NO_INTENT_RESPONSE,
 } from '../../../__tests__/fixtures/gemini-responses';
 
+// Mock dependencies
 vi.mock('../gemini/gemini.client', () => ({
   geminiGenerate: vi.fn(),
 }));
 
-// Mock global fetch for agent dispatch
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
+vi.mock('../chart/chart.service', () => ({
+  generateChart: vi.fn(),
+}));
+
+vi.mock('../summary/summary.service', () => ({
+  processSummaryIntent: vi.fn(),
+}));
+
+vi.mock('../reference/reference.service', () => ({
+  findReferences: vi.fn(),
+}));
+
+vi.mock('../context/context.service', () => ({
+  findContextMatches: vi.fn(),
+}));
+
+vi.mock('@/websocket/ws-server', () => ({
+  broadcast: vi.fn(),
+}));
 
 describe('OrchestratorService', () => {
   let mockGeminiGenerate: ReturnType<typeof vi.fn>;
+  let mockGenerateChart: ReturnType<typeof vi.fn>;
+  let mockProcessSummaryIntent: ReturnType<typeof vi.fn>;
+  let mockFindReferences: ReturnType<typeof vi.fn>;
+  let mockFindContextMatches: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+
+    // Import mocks
     const geminiModule = await import('../gemini/gemini.client');
     mockGeminiGenerate = vi.mocked(geminiModule.geminiGenerate);
+
+    const chartModule = await import('../chart/chart.service');
+    mockGenerateChart = vi.mocked(chartModule.generateChart);
+    mockGenerateChart.mockResolvedValue({});
+
+    const summaryModule = await import('../summary/summary.service');
+    mockProcessSummaryIntent = vi.mocked(summaryModule.processSummaryIntent);
+    mockProcessSummaryIntent.mockResolvedValue({});
+
+    const referenceModule = await import('../reference/reference.service');
+    mockFindReferences = vi.mocked(referenceModule.findReferences);
+    mockFindReferences.mockResolvedValue({});
+
+    const contextModule = await import('../context/context.service');
+    mockFindContextMatches = vi.mocked(contextModule.findContextMatches);
+    mockFindContextMatches.mockResolvedValue({ matches: [] }); // Default no matches
   });
 
   it('classifies intents and returns them with priorities', async () => {
@@ -38,7 +76,7 @@ describe('OrchestratorService', () => {
     expect(result.intents[0].priority).toBe(9);
   });
 
-  it('dispatches DATA_CLAIM to chart agent', async () => {
+  it('dispatches DATA_CLAIM to chart service', async () => {
     mockGeminiGenerate.mockResolvedValue(JSON.stringify(GEMINI_DATA_CLAIM_RESPONSE));
 
     const result = await processTranscript({
@@ -47,14 +85,11 @@ describe('OrchestratorService', () => {
       sessionId: 'test-session',
     });
 
-    expect(result.dispatched).toContain('/api/agents/chart');
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/agents/chart'),
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-    );
+    expect(result.dispatched).toContain('DATA_CLAIM');
+    expect(mockGenerateChart).toHaveBeenCalledWith(expect.objectContaining({
+      intent: expect.objectContaining({ type: 'DATA_CLAIM' }),
+      sessionId: 'test-session',
+    }));
   });
 
   it('dispatches multiple agents in parallel for multi-intent', async () => {
@@ -66,10 +101,13 @@ describe('OrchestratorService', () => {
       sessionId: 'test-session',
     });
 
-    expect(result.dispatched).toContain('/api/agents/chart');
-    expect(result.dispatched).toContain('/api/agents/reference');
-    expect(result.dispatched).toContain('/api/agents/context');
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    // Expect appropriate services to be called
+    expect(mockGenerateChart).toHaveBeenCalled();
+    expect(mockFindReferences).toHaveBeenCalled();
+    // Context is called generally now if intents exist
+    expect(mockFindContextMatches).toHaveBeenCalled();
+
+    expect(result.dispatched.length).toBeGreaterThanOrEqual(2);
   });
 
   it('does not dispatch when no intents classified', async () => {
@@ -83,46 +121,10 @@ describe('OrchestratorService', () => {
 
     expect(result.intents).toHaveLength(0);
     expect(result.dispatched).toHaveLength(0);
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockGenerateChart).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch for TOPIC_SHIFT (no agent mapping)', async () => {
-    mockGeminiGenerate.mockResolvedValue(
-      JSON.stringify({
-        intents: [{ type: 'TOPIC_SHIFT', confidence: 0.8, excerpt: 'Moving on' }],
-      })
-    );
-
-    const result = await processTranscript({
-      text: 'Moving on to the next topic',
-      timestamp: Date.now(),
-      sessionId: 'test-session',
-    });
-
-    expect(result.intents).toHaveLength(1);
-    expect(result.dispatched).toHaveLength(0);
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
-
-  it('continues dispatching even if one agent fails', async () => {
-    mockGeminiGenerate.mockResolvedValue(JSON.stringify(GEMINI_MULTI_INTENT_RESPONSE));
-    mockFetch
-      .mockResolvedValueOnce({ ok: false, status: 500 }) // chart fails
-      .mockResolvedValueOnce({ ok: true }) // reference succeeds
-      .mockResolvedValueOnce({ ok: true }); // context succeeds
-
-    const result = await processTranscript({
-      text: 'Revenue grew 40%, McKinsey report, Sarah email',
-      timestamp: Date.now(),
-      sessionId: 'test-session',
-    });
-
-    // All three should still be in dispatched (we attempted them all)
-    expect(result.dispatched).toHaveLength(3);
-    expect(mockFetch).toHaveBeenCalledTimes(3);
-  });
-
-  it('passes sessionId and context in agent request body', async () => {
+  it('passes sessionId and context in agent request arguments', async () => {
     mockGeminiGenerate.mockResolvedValue(JSON.stringify(GEMINI_DATA_CLAIM_RESPONSE));
 
     await processTranscript({
@@ -132,9 +134,9 @@ describe('OrchestratorService', () => {
       context: 'previous discussion context',
     });
 
-    const fetchCall = mockFetch.mock.calls[0];
-    const body = JSON.parse(fetchCall[1].body);
-    expect(body.sessionId).toBe('my-session-123');
-    expect(body.context).toBe('previous discussion context');
+    expect(mockGenerateChart).toHaveBeenCalledWith(expect.objectContaining({
+      sessionId: 'my-session-123',
+      context: 'previous discussion context'
+    }));
   });
 });

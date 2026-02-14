@@ -75,11 +75,11 @@ export function CTA() {
                             transition={{ duration: 0.6, delay: 0.5 }}
                             className="flex flex-col sm:flex-row items-center justify-center gap-4"
                         >
-                            <Link href="/sign-up" className="btn-primary inline-flex items-center gap-2 text-lg">
+                            <Link href="/app" className="btn-primary inline-flex items-center gap-2 text-lg">
                                 Start for Free
                                 <ArrowRight className="w-5 h-5" />
                             </Link>
-                            <Link href="/sign-in" className="btn-secondary text-lg">
+                            <Link href="/app" className="btn-secondary text-lg">
                                 Sign In
                             </Link>
                         </motion.div>

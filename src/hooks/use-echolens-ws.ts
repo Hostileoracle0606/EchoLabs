@@ -33,16 +33,16 @@ export function useEchoLensWs() {
         const store = useEchoLensStore.getState();
 
         switch (msg.event) {
-          case 'chart:render':
+          case 'agent:chart':
             store.addChart(msg.payload);
             break;
-          case 'reference:found':
+          case 'agent:reference':
             store.addReferences(msg.payload);
             break;
-          case 'context:match':
+          case 'agent:context':
             store.addContextMatch(msg.payload);
             break;
-          case 'summary:update':
+          case 'agent:summary':
             store.updateSummary(msg.payload.bullets);
             break;
           case 'agent:status':

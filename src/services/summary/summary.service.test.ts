@@ -19,8 +19,8 @@ describe('SummaryService', () => {
   });
 
   describe('processSummaryIntent', () => {
-    it('converts a KEY_POINT intent into a summary bullet', () => {
-      const result = processSummaryIntent({
+    it('converts a KEY_POINT intent into a summary bullet', async () => {
+      const result = await processSummaryIntent({
         intent: {
           type: 'KEY_POINT',
           confidence: 0.9,
@@ -36,8 +36,8 @@ describe('SummaryService', () => {
       expect(result.bullets[0].text).toContain('Revenue grew 40%');
     });
 
-    it('converts a DECISION intent into a summary bullet', () => {
-      const result = processSummaryIntent({
+    it('converts a DECISION intent into a summary bullet', async () => {
+      const result = await processSummaryIntent({
         intent: {
           type: 'DECISION',
           confidence: 0.87,
@@ -52,8 +52,8 @@ describe('SummaryService', () => {
       expect(result.bullets[0].category).toBe('decision');
     });
 
-    it('converts an ACTION_ITEM intent and extracts owner', () => {
-      const result = processSummaryIntent({
+    it('converts an ACTION_ITEM intent and extracts owner', async () => {
+      const result = await processSummaryIntent({
         intent: {
           type: 'ACTION_ITEM',
           confidence: 0.91,
@@ -68,7 +68,7 @@ describe('SummaryService', () => {
       expect(result.bullets[0].category).toBe('action_item');
     });
 
-    it('deduplicates repeated intents', () => {
+    it('deduplicates repeated intents', async () => {
       const intentPayload = {
         intent: {
           type: 'KEY_POINT' as const,
@@ -80,8 +80,8 @@ describe('SummaryService', () => {
         sessionId: 'test-session',
       };
 
-      const result1 = processSummaryIntent(intentPayload);
-      const result2 = processSummaryIntent(intentPayload);
+      const result1 = await processSummaryIntent(intentPayload);
+      const result2 = await processSummaryIntent(intentPayload);
 
       expect(result1.bullets).toHaveLength(1);
       expect(result2.bullets).toHaveLength(0); // Duplicate filtered

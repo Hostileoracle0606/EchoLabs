@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const result = await findReferences(parsed.data);
 
-    broadcast('reference:found', parsed.data.sessionId, {
+    broadcast('agent:reference', parsed.data.sessionId, {
       sources: result.sources,
       query: result.query,
     });

@@ -7,51 +7,37 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 
 export function Hero() {
     return (
-        <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
-            {/* Background elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                {/* Grid pattern */}
-                <div
-                    className="absolute inset-0 opacity-[0.02]"
-                    style={{
-                        backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-                        backgroundSize: '100px 100px',
-                    }}
-                />
-            </div>
+        <section className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden px-6 bg-[var(--bg-primary)]">
 
-            {/* Aura - The Hero Element */}
-            <div className="relative z-10 mb-8">
+            {/* Ambient Aura Background */}
+            <div className="absolute inset-0 z-0">
                 <AuraHero />
             </div>
 
             {/* Content */}
-            <div className="relative z-10 text-center max-w-4xl mx-auto">
+            <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center justify-center h-full">
+
                 {/* Badge */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.6 }}
-                    className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full mb-8"
+                    transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+                    className="inline-flex items-center gap-2 glass px-6 py-2 rounded-full mb-10 select-none"
                 >
                     <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
-                    <span className="text-sm text-[var(--foreground-muted)]">
+                    <span className="text-sm font-medium text-[var(--foreground-muted)] tracking-wide uppercase">
                         AI-Powered Presentation Companion
                     </span>
                 </motion.div>
 
                 {/* Tagline */}
                 <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7, duration: 0.6 }}
-                    className="heading-display text-5xl md:text-7xl lg:text-8xl text-balance mb-6"
+                    transition={{ delay: 0.7, duration: 1, ease: "easeOut" }}
+                    className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-center leading-[0.9] text-[var(--foreground)] mb-12 select-none"
                 >
-                    <span className="text-gradient">Your voice</span>
-                    <br />
+                    Your voice<br />
                     <span className="text-gradient-accent">shapes the room.</span>
                 </motion.h1>
 
@@ -59,45 +45,27 @@ export function Hero() {
                 <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.9, duration: 0.6 }}
-                    className="text-xl md:text-2xl text-[var(--foreground-muted)] text-balance max-w-2xl mx-auto mb-12"
+                    transition={{ delay: 1.2, duration: 0.8 }}
+                    className="text-2xl md:text-3xl font-light text-[var(--foreground-muted)] max-w-3xl mx-auto mb-16 leading-relaxed"
                 >
                     EchoLens transforms your pitch into a living visual experience.
-                    Speak naturally. Watch your data come alive.
                 </motion.p>
 
-                {/* CTAs */}
+                {/* CTA */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.1, duration: 0.6 }}
-                    className="flex flex-col sm:flex-row items-center justify-center gap-4"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1.5, duration: 0.5 }}
                 >
-                    <Link href="/sign-up" className="btn-primary inline-flex items-center gap-2 text-lg">
+                    <Link
+                        href="/app"
+                        className="btn-primary inline-flex items-center gap-3 text-xl px-10 py-5 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                    >
                         Get Started Free
-                        <ArrowRight className="w-5 h-5" />
-                    </Link>
-                    <Link href="#how-it-works" className="btn-secondary text-lg">
-                        See How It Works
+                        <ArrowRight className="w-6 h-6" />
                     </Link>
                 </motion.div>
             </div>
-
-            {/* Scroll indicator */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.5, duration: 0.6 }}
-                className="absolute bottom-8 left-1/2 -translate-x-1/2"
-            >
-                <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="w-6 h-10 rounded-full border-2 border-[var(--foreground-subtle)] p-2"
-                >
-                    <div className="w-1.5 h-1.5 bg-[var(--foreground-subtle)] rounded-full mx-auto" />
-                </motion.div>
-            </motion.div>
         </section>
     );
 }

@@ -9,7 +9,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "demo": "npx tsx simulate-demo.ts",
+    "keynote": "npx tsx simulate-keynote.ts",
+    "dev:keynote": "DEMO_MODE=keynote npx tsx server.ts"
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.3",

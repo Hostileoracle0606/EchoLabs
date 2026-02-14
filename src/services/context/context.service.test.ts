@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { findContextMatches } from './context.service';
 
 describe('ContextService', () => {
-  it('matches email from Evelyn about regulatory risk', () => {
-    const result = findContextMatches({
+  it('matches email from Evelyn about regulatory risk', async () => {
+    const result = await findContextMatches({
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.85,
@@ -20,8 +20,8 @@ describe('ContextService', () => {
     expect(emailMatch!.from).toContain('Evelyn');
   });
 
-  it('matches a document about the IC memo', () => {
-    const result = findContextMatches({
+  it('matches a document about the IC memo', async () => {
+    const result = await findContextMatches({
       intent: {
         type: 'DOC_MENTION',
         confidence: 0.86,
@@ -38,8 +38,8 @@ describe('ContextService', () => {
     expect(docMatch!.title).toContain('IC_Memo');
   });
 
-  it('matches email about churn and NDR metrics', () => {
-    const result = findContextMatches({
+  it('matches email about churn and NDR metrics', async () => {
+    const result = await findContextMatches({
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.8,
@@ -55,8 +55,8 @@ describe('ContextService', () => {
     expect(match).toBeTruthy();
   });
 
-  it('returns empty matches for unrelated keywords', () => {
-    const result = findContextMatches({
+  it('returns empty matches for unrelated keywords', async () => {
+    const result = await findContextMatches({
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.7,
@@ -70,8 +70,8 @@ describe('ContextService', () => {
     expect(result.matches).toHaveLength(0);
   });
 
-  it('scores relevance based on keyword overlap', () => {
-    const result = findContextMatches({
+  it('scores relevance based on keyword overlap', async () => {
+    const result = await findContextMatches({
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.9,
@@ -86,8 +86,8 @@ describe('ContextService', () => {
     expect(result.matches[0].relevanceScore).toBeGreaterThan(0);
   });
 
-  it('matches across all context types (email, doc, calendar, slack)', () => {
-    const result = findContextMatches({
+  it('matches across all context types (email, doc, calendar, slack)', async () => {
+    const result = await findContextMatches({
       intent: {
         type: 'DOC_MENTION',
         confidence: 0.8,
@@ -101,8 +101,8 @@ describe('ContextService', () => {
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('returns at most 3 matches', () => {
-    const result = findContextMatches({
+  it('returns at most 3 matches', async () => {
+    const result = await findContextMatches({
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.8,

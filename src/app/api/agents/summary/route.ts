@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
       if (result.bullets.length > 0) {
         const allBullets = getSessionBullets(sweepParsed.data.sessionId);
-        broadcast('summary:update', sweepParsed.data.sessionId, {
+        broadcast('agent:summary', sweepParsed.data.sessionId, {
           bullets: allBullets.map((b, i) => ({
             ...b,
             isNew: i >= allBullets.length - result.bullets.length,
@@ -65,11 +65,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = processSummaryIntent(parsed.data);
+    const result = await processSummaryIntent(parsed.data);
 
     if (result.bullets.length > 0) {
       const allBullets = getSessionBullets(parsed.data.sessionId);
-      broadcast('summary:update', parsed.data.sessionId, {
+      broadcast('agent:summary', parsed.data.sessionId, {
         bullets: allBullets.map((b, i) => ({
           ...b,
           isNew: i >= allBullets.length - result.bullets.length,

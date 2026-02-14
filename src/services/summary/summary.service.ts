@@ -13,7 +13,7 @@ const INTENT_TO_CATEGORY: Record<string, SummaryBullet['category']> = {
   QUESTION: 'question',
 };
 
-export function processSummaryIntent(request: AgentRequest): SummaryAgentResponse {
+export async function processSummaryIntent(request: AgentRequest): Promise<SummaryAgentResponse> {
   const { intent, sessionId } = request;
 
   const category = INTENT_TO_CATEGORY[intent.type] || 'key_point';

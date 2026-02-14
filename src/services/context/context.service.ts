@@ -1,4 +1,5 @@
-import mockData from '@/data/mock-context.json';
+import defaultContext from '@/data/mock-context.json';
+import keynoteContext from '@/data/keynote-context.json';
 import type { AgentRequest, ContextAgentResponse, ContextMatch } from '@/types/agents';
 
 interface MockEntry {
@@ -7,10 +8,17 @@ interface MockEntry {
   [key: string]: unknown;
 }
 
+// Support multiple demo modes via environment variable
+// Usage: DEMO_MODE=keynote npm run dev:ws
+const DEMO_MODE = process.env.DEMO_MODE || 'default';
+const mockData = DEMO_MODE === 'keynote' ? keynoteContext : defaultContext;
+
+console.log(`[Context Service] Using ${DEMO_MODE} demo mode`);
+
 const MIN_SCORE_THRESHOLD = 0.3;
 const MAX_RESULTS = 3;
 
-export function findContextMatches(request: AgentRequest): ContextAgentResponse {
+export async function findContextMatches(request: AgentRequest): Promise<ContextAgentResponse> {
   const { intent } = request;
   const searchText = intent.excerpt.toLowerCase();
   const searchWords = searchText.split(/\s+/).filter((w) => w.length > 2);

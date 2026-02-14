@@ -119,5 +119,6 @@ export function resetWebSocketServer(): void {
     clients.clear();
     wss.close();
     wss = null;
+    globalForWs.wss = null;
   }
 }

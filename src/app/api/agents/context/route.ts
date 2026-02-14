@@ -28,27 +28,32 @@ export async function POST(request: NextRequest) {
     }
 
     sessionId = parsed.data.sessionId;
+    const { intent, context } = parsed.data;
 
     broadcast('agent:status', sessionId, {
       agent: 'context',
       status: 'processing',
     });
 
-    const result = findContextMatches(parsed.data);
+    const response = await findContextMatches({
+      intent: intent as any,
+      context,
+      sessionId,
+    });
 
-    if (result.matches.length > 0) {
+    if (response.matches.length > 0) {
       // Group matches by matchType so each broadcast has the correct type.
       // Without this, a mixed result (email + doc) would all display as the
       // first match's type — e.g., a doc showing with an email icon.
-      const grouped = new Map<string, typeof result.matches>();
-      for (const match of result.matches) {
+      const grouped = new Map<string, typeof response.matches>();
+      for (const match of response.matches) {
         const group = grouped.get(match.matchType) || [];
         group.push(match);
         grouped.set(match.matchType, group);
       }
 
       for (const [matchType, matches] of grouped) {
-        broadcast('context:match', sessionId, {
+        broadcast('agent:context', sessionId, {
           matchType,
           matches,
         });
@@ -60,7 +65,7 @@ export async function POST(request: NextRequest) {
       status: 'complete',
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(response);
   } catch (error) {
     console.error('[Context Agent] Error:', error);
     if (sessionId) {

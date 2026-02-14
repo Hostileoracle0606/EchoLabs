@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { MockAuthProvider } from "@/contexts/mock-auth-context";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistMono.variable} antialiased bg-[#f8fafc]`}
       >
-        {children}
+        <MockAuthProvider>
+          {children}
+        </MockAuthProvider>
       </body>
     </html>
   );
