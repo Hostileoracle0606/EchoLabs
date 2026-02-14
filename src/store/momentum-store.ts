@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { ChartPayload, ReferencePayload, ContextPayload } from '@/types/events';
+import type { BuyingSignal, CallSummary, CoachingTip, ComplianceWarning, NextStep, Objection, SalesStage } from '@/types/sales';
+import type { TranscriptSpeaker } from '@/types/transcript';
 
 interface SummaryBulletDisplay {
   id: string;
@@ -15,11 +17,14 @@ interface TranscriptChunkDisplay {
   id: string;
   text: string;
   isFinal: boolean;
+  speaker: TranscriptSpeaker;
+  timestamp: number;
 }
 
-interface EchoLensState {
+interface MomentumState {
   // Session
   sessionId: string;
+  callId: string;
   isRecording: boolean;
 
   // Transcript
@@ -32,25 +37,43 @@ interface EchoLensState {
   contextMatches: ContextPayload[];
   summaryBullets: SummaryBulletDisplay[];
 
+  // Sales insights
+  salesStage: SalesStage;
+  objections: Objection[];
+  buyingSignals: BuyingSignal[];
+  nextSteps: NextStep[];
+  coachingTips: CoachingTip[];
+  complianceWarnings: ComplianceWarning[];
+  callSummary: CallSummary | null;
+
   // Agent status
   agentStatuses: Record<string, 'idle' | 'processing' | 'complete' | 'error'>;
 
   // Actions
   setSessionId: (id: string) => void;
+  setCallId: (id: string) => void;
   setRecording: (recording: boolean) => void;
-  addTranscriptChunk: (text: string, isFinal: boolean) => void;
+  addTranscriptChunk: (text: string, isFinal: boolean, speaker?: TranscriptSpeaker, timestamp?: number) => void;
   setInterimText: (text: string) => void;
   addChart: (chart: ChartPayload) => void;
   addReferences: (refs: ReferencePayload) => void;
   addContextMatch: (match: ContextPayload) => void;
   updateSummary: (bullets: SummaryBulletDisplay[]) => void;
+  setSalesStage: (stage: SalesStage) => void;
+  addObjections: (objections: Objection[]) => void;
+  addBuyingSignals: (signals: BuyingSignal[]) => void;
+  addNextSteps: (steps: NextStep[]) => void;
+  addCoachingTips: (tips: CoachingTip[]) => void;
+  addComplianceWarnings: (warnings: ComplianceWarning[]) => void;
+  setCallSummary: (summary: CallSummary) => void;
   setAgentStatus: (agent: string, status: 'idle' | 'processing' | 'complete' | 'error') => void;
   reset: () => void;
 }
 
-export const useEchoLensStore = create<EchoLensState>()(
+export const useMomentumStore = create<MomentumState>()(
   immer((set) => ({
     sessionId: '', // Initialize empty to avoid hydration mismatch
+    callId: '',
     isRecording: false,
     transcriptChunks: [],
     interimText: '',
@@ -58,6 +81,13 @@ export const useEchoLensStore = create<EchoLensState>()(
     references: [],
     contextMatches: [],
     summaryBullets: [],
+    salesStage: 'opening',
+    objections: [],
+    buyingSignals: [],
+    nextSteps: [],
+    coachingTips: [],
+    complianceWarnings: [],
+    callSummary: null,
     agentStatuses: {},
 
     setRecording: (recording) =>
@@ -65,13 +95,15 @@ export const useEchoLensStore = create<EchoLensState>()(
         state.isRecording = recording;
       }),
 
-    addTranscriptChunk: (text, isFinal) =>
+    addTranscriptChunk: (text, isFinal, speaker = 'customer', timestamp = Date.now()) =>
       set((state) => {
         if (isFinal) {
           state.transcriptChunks.push({
             id: `chunk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
             text,
             isFinal: true,
+            speaker,
+            timestamp,
           });
           state.interimText = '';
         }
@@ -110,6 +142,41 @@ export const useEchoLensStore = create<EchoLensState>()(
         state.summaryBullets = bullets;
       }),
 
+    setSalesStage: (stage) =>
+      set((state) => {
+        state.salesStage = stage;
+      }),
+
+    addObjections: (objections) =>
+      set((state) => {
+        state.objections.push(...objections);
+      }),
+
+    addBuyingSignals: (signals) =>
+      set((state) => {
+        state.buyingSignals.push(...signals);
+      }),
+
+    addNextSteps: (steps) =>
+      set((state) => {
+        state.nextSteps.push(...steps);
+      }),
+
+    addCoachingTips: (tips) =>
+      set((state) => {
+        state.coachingTips.push(...tips);
+      }),
+
+    addComplianceWarnings: (warnings) =>
+      set((state) => {
+        state.complianceWarnings.push(...warnings);
+      }),
+
+    setCallSummary: (summary) =>
+      set((state) => {
+        state.callSummary = summary;
+      }),
+
     setAgentStatus: (agent, status) =>
       set((state) => {
         state.agentStatuses[agent] = status;
@@ -123,7 +190,13 @@ export const useEchoLensStore = create<EchoLensState>()(
         state.references = [];
         state.contextMatches = [];
         state.summaryBullets = [];
-        state.agentStatuses = {};
+        state.salesStage = 'opening';
+        state.objections = [];
+        state.buyingSignals = [];
+        state.nextSteps = [];
+        state.coachingTips = [];
+        state.complianceWarnings = [];
+        state.callSummary = null;
         state.agentStatuses = {};
         state.isRecording = false;
       }),
@@ -131,6 +204,11 @@ export const useEchoLensStore = create<EchoLensState>()(
     setSessionId: (id: string) =>
       set((state) => {
         state.sessionId = id;
+      }),
+
+    setCallId: (id: string) =>
+      set((state) => {
+        state.callId = id;
       }),
   }))
 );

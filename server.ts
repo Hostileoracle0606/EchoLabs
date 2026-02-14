@@ -20,7 +20,7 @@ app.prepare().then(() => {
   initWebSocketServer(server);
 
   server.listen(port, () => {
-    console.log(`> EchoLens ready on http://${hostname}:${port}`);
+    console.log(`> Momentum ready on http://${hostname}:${port}`);
     console.log(`> WebSocket server listening on ws://${hostname}:${port}/ws`);
   });
 });

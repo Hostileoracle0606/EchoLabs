@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EchoLens — AI Presentation Companion",
+  title: "Momentum — AI Presentation Companion",
   description: "Real-time AI-powered presentation companion that visualizes, references, and summarizes as you speak.",
 };
 

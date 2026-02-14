@@ -6,10 +6,11 @@ export async function GET() {
     timestamp: Date.now(),
     agents: {
       orchestrator: true,
-      chart: true,
-      reference: true,
-      context: true,
-      summary: true,
+      salesDirector: true,
+      productExpert: true,
+      objectionHandler: true,
+      qualifier: true,
+      closing: true,
     },
   });
 }

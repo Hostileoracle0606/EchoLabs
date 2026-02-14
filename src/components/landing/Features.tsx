@@ -15,7 +15,7 @@ const features = [
     {
         icon: Zap,
         title: 'Real-Time Transcription',
-        description: 'Sub-300ms latency speech-to-text powered by Deepgram Nova-2. Every word captured instantly.',
+        description: 'Sub-300ms latency speech-to-text powered by Smallest.ai ATOMS. Every word captured instantly.',
     },
     {
         icon: Brain,

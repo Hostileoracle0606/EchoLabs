@@ -49,9 +49,9 @@
             "avatarColor": "#10b981"
         },
         {
-            "id": "email_echolens_interest",
+            "id": "email_momentum_interest",
             "keywords": [
-                "echolens",
+                "momentum",
                 "demo",
                 "presentation",
                 "ai",
@@ -59,7 +59,7 @@
                 "real-time"
             ],
             "from": "Alex Rivera",
-            "subject": "This EchoLens thing is mindblowing 🤯",
+            "subject": "This Momentum thing is mindblowing 🤯",
             "date": "Just now",
             "preview": "Just watched the demo. It's like having a brilliant assistant who knows everything you're talking about and surfaces it instantly. When can we pilot this?",
             "avatarColor": "#8b5cf6"
@@ -75,9 +75,9 @@
                 "team"
             ],
             "from": "CxC Hackathon Team",
-            "subject": "🏆 Submission Received: EchoLens",
+            "subject": "🏆 Submission Received: Momentum",
             "date": "Feb 8, 2026",
-            "preview": "Your team's submission 'EchoLens: Real-Time Presentation Intelligence' has been received. Good luck!",
+            "preview": "Your team's submission 'Momentum: Real-Time Presentation Intelligence' has been received. Good luck!",
             "avatarColor": "#f97316"
         }
     ],
@@ -109,7 +109,7 @@
                 "websocket",
                 "pipeline"
             ],
-            "title": "EchoLens_Technical_Architecture.docx",
+            "title": "Momentum_Technical_Architecture.docx",
             "modified": "Feb 7, 2026",
             "preview": "System Design: Speech-to-Text → Intent Classifier → Orchestrator → Specialized Agents (Chart, Context, Summary, Reference) → WebSocket Real-time Push → React UI...",
             "fileType": "docx"
@@ -188,9 +188,9 @@
                 "rehearsal",
                 "practice"
             ],
-            "channel": "#echolens-team",
+            "channel": "#momentum-team",
             "from": "Team Lead",
-            "message": "Demo is looking solid! Remember: the magic is that EchoLens proves its own value BY working during our presentation. Meta! 🎯",
+            "message": "Demo is looking solid! Remember: the magic is that Momentum proves its own value BY working during our presentation. Meta! 🎯",
             "time": "1 hour ago"
         },
         {
@@ -202,7 +202,7 @@
                 "chart",
                 "context"
             ],
-            "channel": "#echolens-dev",
+            "channel": "#momentum-dev",
             "from": "Dev Team",
             "message": "All 9 intent types working: DATA_CLAIM, REFERENCE, EMAIL_MENTION, DOC_MENTION, TOPIC_SHIFT, KEY_POINT, DECISION, ACTION_ITEM, QUESTION. Chart agent generating Mermaid diagrams beautifully.",
             "time": "2 hours ago"
@@ -215,7 +215,7 @@
                 "latency",
                 "performance"
             ],
-            "channel": "#echolens-dev",
+            "channel": "#momentum-dev",
             "from": "Backend Lead",
             "message": "WebSocket latency down to ~200ms end-to-end. Intent classification + agent dispatch + UI update all happening in near real-time. We're ready! 🚀",
             "time": "3 hours ago"

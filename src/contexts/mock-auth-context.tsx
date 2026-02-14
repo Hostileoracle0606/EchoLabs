@@ -39,7 +39,7 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
         const mockUser: User = {
             id: 'user-123',
             name: 'Demo User',
-            email: 'demo@echolens.ai',
+            email: 'demo@momentum.ai',
             avatarUrl: 'https://ui-avatars.com/api/?name=Demo+User&background=random'
         };
 

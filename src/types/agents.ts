@@ -1,4 +1,5 @@
 import type { ClassifiedIntent } from './intents';
+import type { SalesStage } from './sales';
 
 export interface AgentRequest {
   intent: ClassifiedIntent;
@@ -12,11 +13,22 @@ export interface OrchestratorRequest {
   timestamp: number;
   sessionId: string;
   context?: string;
+  callId?: string;
+  customerId?: string;
+  speaker?: 'customer' | 'agent' | 'system';
+  schemaVersion?: 1 | 2;
 }
 
 export interface OrchestratorResponse {
   intents: ClassifiedIntent[];
   dispatched: string[];
+}
+
+export interface SalesOrchestratorResponse {
+  stage: SalesStage;
+  objections: number;
+  buyingSignals: number;
+  nextSteps: number;
 }
 
 export type MermaidChartType =
