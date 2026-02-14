@@ -1,7 +1,10 @@
+import type { TranscriptSpeaker } from '@/types/transcript';
+
 interface BufferChunk {
   text: string;
   timestamp: number;
   isFinal: boolean;
+  speaker: TranscriptSpeaker;
 }
 
 export class TranscriptBufferManager {
@@ -13,13 +16,14 @@ export class TranscriptBufferManager {
     this.sessionId = sessionId;
   }
 
-  addChunk(text: string, isFinal: boolean): void {
+  addChunk(text: string, isFinal: boolean, speaker: TranscriptSpeaker = 'customer'): void {
     if (!isFinal) return;
 
     this.chunks.push({
       text: text.trim(),
       timestamp: Date.now(),
       isFinal,
+      speaker,
     });
   }
 

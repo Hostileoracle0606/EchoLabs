@@ -2,6 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import type { Server as HttpServer, IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
 import { serializeWsMessage, createWsMessage, parseWsMessage } from './ws-events';
+import { getVoiceSessionManager } from '@/services/voice/voice-session-manager';
 import type { WsEventType } from '@/types/events';
 
 interface ConnectedClient {
@@ -35,7 +36,16 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
   wss.on('connection', (ws: WebSocket) => {
     clients.set(ws, { ws, sessionId: null });
 
-    ws.on('message', (raw: Buffer) => {
+    ws.on('message', async (raw, isBinary) => {
+      if (isBinary) {
+        const client = clients.get(ws);
+        if (client?.sessionId) {
+          const buffer = Buffer.isBuffer(raw) ? raw : Buffer.from(raw as ArrayBuffer);
+          await getVoiceSessionManager().handleAudioChunk(client.sessionId, buffer);
+        }
+        return;
+      }
+
       const msg = parseWsMessage(raw.toString());
       if (!msg) return;
 
@@ -43,6 +53,35 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
         const client = clients.get(ws);
         if (client) {
           client.sessionId = msg.sessionId;
+        }
+      }
+
+      if (msg.event === 'voice:start') {
+        const client = clients.get(ws);
+        const sessionId = msg.sessionId || client?.sessionId;
+        if (sessionId && typeof msg.payload === 'object') {
+          await getVoiceSessionManager().startSession({
+            sessionId,
+            callId: (msg.payload as any).callId ?? `call-${sessionId}`,
+            customerId: (msg.payload as any).customerId,
+            phoneNumber: (msg.payload as any).phoneNumber,
+          });
+        }
+      }
+
+      if (msg.event === 'voice:stop') {
+        const client = clients.get(ws);
+        const sessionId = msg.sessionId || client?.sessionId;
+        if (sessionId) {
+          await getVoiceSessionManager().stopSession(sessionId);
+        }
+      }
+
+      if (msg.event === 'voice:interrupt') {
+        const client = clients.get(ws);
+        const sessionId = msg.sessionId || client?.sessionId;
+        if (sessionId) {
+          await getVoiceSessionManager().interruptSession(sessionId);
         }
       }
     });

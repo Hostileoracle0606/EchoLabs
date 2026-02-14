@@ -1,20 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AnimatePresence, motion } from 'motion/react';
-import { useEchoLensStore } from '@/store/echolens-store';
-import { useEchoLensWs } from '@/hooks/use-echolens-ws';
+import { motion } from 'motion/react';
+import { useMomentumStore } from '@/store/momentum-store';
+import { useMomentumWs } from '@/hooks/use-momentum-ws';
 import { TranscriptPanel } from '@/components/transcript/transcript-panel';
-import { MermaidChart } from '@/components/cards/chart-card';
-import { ReferenceCard } from '@/components/cards/reference-card';
-import { ContextCard } from '@/components/cards/context-card';
-import { SummarySidebar } from '@/components/sidebar/summary-sidebar';
 import { MicButton } from '@/components/controls/mic-button';
 import { AuraHero } from '@/components/aura';
+import type { BuyingSignal, CoachingTip, ComplianceWarning, NextStep, Objection } from '@/types/sales';
 
-/* ─── Agent status badge ────────────────────────────── */
 const STATUS_COLORS: Record<string, string> = {
   processing: 'bg-amber-400',
   complete: 'bg-emerald-400',
@@ -22,128 +18,39 @@ const STATUS_COLORS: Record<string, string> = {
   idle: 'bg-slate-300',
 };
 
-
-/* ─── Carousel Card Component ───────────────────────── */
-function CarouselCard<T>({
+function InsightCard<T>({
   title,
   icon,
   items,
-  renderItem,
   emptyState,
-  className = '',
+  renderItem,
 }: {
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   items: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
   emptyState: React.ReactNode;
-  className?: string;
+  renderItem: (item: T, index: number) => React.ReactNode;
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // Reset index when items change length to avoid out–of–bounds, 
-  // but try to keep position if possible or go to last
-  useEffect(() => {
-    if (items.length === 0) {
-      setCurrentIndex(0);
-    } else if (currentIndex >= items.length) {
-      setCurrentIndex(items.length - 1);
-    }
-  }, [items.length]);
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % items.length);
-  };
-
-  const goToPrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
-  };
-
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', duration: 0.5 }}
-      className={`flex flex-col rounded-3xl border border-[var(--glass-border)] glass-card p-5 shadow-sm ${className}`}
+      className="flex flex-col rounded-3xl border border-[var(--glass-border)] glass-card p-5 shadow-sm"
     >
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--bg-secondary)] text-[var(--foreground-muted)]">
-            {icon}
-          </div>
-          <h2 className="text-sm font-semibold text-[var(--foreground)]">{title}</h2>
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--bg-secondary)] text-[var(--foreground-muted)]">
+          {icon}
         </div>
-        {items.length > 0 && (
-          <span className="rounded-full bg-[var(--bg-secondary)] px-2.5 py-0.5 text-xs font-medium text-[var(--foreground-muted)]">
-            {currentIndex + 1} / {items.length}
-          </span>
-        )}
+        <h2 className="text-sm font-semibold text-[var(--foreground)]">{title}</h2>
       </div>
-
-      <div className="flex-1 relative min-h-[120px] flex flex-col">
-        {items.length > 0 ? (
-          <>
-            <div className="flex-1">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentIndex}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full"
-                >
-                  {renderItem(items[currentIndex], currentIndex)}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Navigation Controls */}
-            {items.length > 1 && (
-              <div className="mt-4 flex items-center justify-between border-t border-[var(--glass-border)] pt-3">
-                <button
-                  onClick={goToPrev}
-                  className="p-1 rounded-full hover:bg-[var(--bg-secondary)] text-[var(--foreground-muted)] transition-colors"
-                  aria-label="Previous"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-
-                <div className="flex gap-1.5">
-                  {items.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentIndex(idx)}
-                      className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex
-                        ? 'bg-[var(--accent-primary)] w-3'
-                        : 'bg-[var(--foreground-subtle)] hover:bg-[var(--foreground-muted)]'
-                        }`}
-                      aria-label={`Go to item ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-
-                <button
-                  onClick={goToNext}
-                  className="p-1 rounded-full hover:bg-[var(--bg-secondary)] text-[var(--foreground-muted)] transition-colors"
-                  aria-label="Next"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          emptyState
-        )}
+      <div className="flex-1 space-y-2">
+        {items.length === 0 ? emptyState : items.map(renderItem)}
       </div>
     </motion.section>
   );
 }
+
 export function MainLayout() {
   const searchParams = useSearchParams();
   const urlSessionId = searchParams.get('session');
@@ -151,31 +58,36 @@ export function MainLayout() {
   const {
     transcriptChunks,
     interimText,
-    charts,
-    references,
-    contextMatches,
-    summaryBullets,
     isRecording,
     agentStatuses,
     sessionId,
+    callId,
+    salesStage,
+    objections,
+    buyingSignals,
+    nextSteps,
+    coachingTips,
+    complianceWarnings,
+    callSummary,
     setSessionId,
-  } = useEchoLensStore();
+    setCallId,
+  } = useMomentumStore();
 
-  // Sync session ID from URL or generate one on client mount
   useEffect(() => {
     if (urlSessionId) {
       if (urlSessionId !== sessionId) {
         setSessionId(urlSessionId);
+        setCallId(`call-${urlSessionId}`);
       }
     } else if (!sessionId) {
-      // No URL param and no session ID yet -> generate one
-      setSessionId(`session-${Date.now()}`);
+      const generated = `session-${Date.now()}`;
+      setSessionId(generated);
+      setCallId(`call-${generated}`);
     }
-  }, [urlSessionId, sessionId, setSessionId]);
+  }, [urlSessionId, sessionId, setSessionId, setCallId]);
 
-  useEchoLensWs();
+  useMomentumWs();
 
-  // Compute real stats from store data
   const stats = useMemo(() => {
     const wordCount = transcriptChunks.reduce(
       (acc, c) => acc + c.text.split(/\s+/).filter(Boolean).length,
@@ -183,12 +95,12 @@ export function MainLayout() {
     );
     return {
       words: wordCount,
-      references: references.reduce((acc, r) => acc + r.sources.length, 0),
-      charts: charts.length,
-      highlights: summaryBullets.length,
-      contexts: contextMatches.reduce((acc, c) => acc + c.matches.length, 0),
+      objections: objections.length,
+      signals: buyingSignals.length,
+      steps: nextSteps.length,
+      warnings: complianceWarnings.length,
     };
-  }, [transcriptChunks, references, charts, summaryBullets, contextMatches]);
+  }, [transcriptChunks, objections, buyingSignals, nextSteps, complianceWarnings]);
 
   const activeAgents = Object.values(agentStatuses).filter(
     (s) => s === 'processing'
@@ -196,30 +108,36 @@ export function MainLayout() {
 
   return (
     <div className="relative flex h-screen flex-col bg-[var(--bg-primary)] text-[var(--foreground)] overflow-hidden">
-      {/* Background Aura */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
         <AuraHero />
       </div>
 
-      {/* ─── Top bar ──────────────────────────────────── */}
       <header className="relative z-10 flex items-center justify-between glass border-b border-[var(--glass-border)] px-6 py-3">
         <div className="flex items-center gap-3">
-          {/* Logo */}
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] shadow-md shadow-blue-500/20">
-            <span className="text-white font-bold text-lg">E</span>
+            <span className="text-white font-bold text-lg">M</span>
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-tight text-[var(--foreground)]">EchoLens</h1>
-            <p className="text-[11px] text-[var(--foreground-muted)]">AI Presentation Companion</p>
+            <h1 className="text-base font-bold tracking-tight text-[var(--foreground)]">
+              Momentum Sales Advisor
+            </h1>
+            <p className="text-[11px] text-[var(--foreground-muted)]">
+              Live coaching for revenue conversations
+            </p>
           </div>
         </div>
 
-        {/* Center: Recording status */}
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full bg-[var(--bg-secondary)] px-3 py-1.5 border border-[var(--glass-border)]">
+            <span className="text-xs font-medium text-[var(--foreground-muted)]">Stage</span>
+            <span className="text-xs font-semibold text-[var(--foreground)] capitalize">
+              {salesStage.replace('_', ' ')}
+            </span>
+          </div>
           {isRecording ? (
             <div className="flex items-center gap-2 rounded-full bg-red-500/10 px-3 py-1.5 border border-red-500/20">
               <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-              <span className="text-xs font-medium text-red-400">Recording</span>
+              <span className="text-xs font-medium text-red-400">Live</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 rounded-full glass px-3 py-1.5 border border-[var(--glass-border)]">
@@ -227,7 +145,6 @@ export function MainLayout() {
               <span className="text-xs font-medium text-[var(--foreground-muted)]">Idle</span>
             </div>
           )}
-
           {activeAgents > 0 && (
             <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 border border-amber-500/20">
               <div className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
@@ -238,14 +155,14 @@ export function MainLayout() {
           )}
         </div>
 
-        {/* Right: Agent dots + mic */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
             {Object.entries(agentStatuses).map(([agent, status]) => (
               <div key={agent} className="flex items-center gap-1.5" title={`${agent}: ${status}`}>
                 <div
-                  className={`h-2 w-2 rounded-full ${STATUS_COLORS[status] ?? 'bg-slate-700'} ${status === 'processing' ? 'animate-pulse' : ''
-                    }`}
+                  className={`h-2 w-2 rounded-full ${STATUS_COLORS[status] ?? 'bg-slate-700'} ${
+                    status === 'processing' ? 'animate-pulse' : ''
+                  }`}
                 />
                 <span className="text-[11px] capitalize text-[var(--foreground-muted)]">{agent}</span>
               </div>
@@ -255,123 +172,100 @@ export function MainLayout() {
         </div>
       </header>
 
-      {/* ─── Body — 3 columns ─────────────────────────── */}
       <div className="relative z-10 flex flex-1 gap-5 overflow-hidden p-5">
-        {/* ─── LEFT: Session Highlights + Transcript ───── */}
-        <aside className="flex w-80 shrink-0 flex-col gap-4 overflow-hidden">
-          {/* Summary sidebar */}
-          <div className="flex-1 overflow-hidden">
-            <SummarySidebar bullets={summaryBullets} />
-          </div>
+        <aside className="flex w-96 shrink-0 flex-col gap-4 overflow-hidden">
+          <TranscriptPanel chunks={transcriptChunks} interimText={interimText} />
 
-          {/* Transcript */}
-          <div className="h-64 shrink-0">
-            <TranscriptPanel chunks={transcriptChunks} interimText={interimText} />
+          <div className="rounded-3xl border border-[var(--glass-border)] glass-card p-5 shadow-sm">
+            <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Call Summary</h3>
+            {callSummary ? (
+              <div className="space-y-2 text-sm text-[var(--foreground)]">
+                <p className="text-[13px] text-[var(--foreground-muted)]">{callSummary.recap}</p>
+                {callSummary.actionItems.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-[var(--foreground-subtle)]">
+                      Action Items
+                    </p>
+                    <ul className="mt-1 space-y-1 text-[13px]">
+                      {callSummary.actionItems.map((item) => (
+                        <li key={item} className="flex items-start gap-2">
+                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)]" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {callSummary.objections.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-[var(--foreground-subtle)]">
+                      Objections
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {callSummary.objections.map((item) => (
+                        <span
+                          key={item}
+                          className="rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] text-red-400"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-[var(--foreground-subtle)]">
+                Call recap and action items will appear here as the conversation progresses.
+              </p>
+            )}
           </div>
         </aside>
 
-        {/* ─── CENTER: Content cards ───────────────────── */}
         <main className="flex flex-1 flex-col gap-5 overflow-y-auto pr-1">
-          {/* Meeting Overview card — generated from summary bullets */}
-          {/* Meeting Overview card — generated from summary bullets */}
-          <CarouselCard
-            title="Meeting Overview"
-            icon={
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                <rect x="9" y="3" width="6" height="4" rx="1" />
-              </svg>
-            }
-            items={summaryBullets}
-            renderItem={(bullet) => <OverviewBullet key={bullet.id} bullet={bullet} />}
-            emptyState={
-              <EmptyState
-                icon="📋"
-                message="Key points, decisions, and action items will appear here as the meeting progresses."
-              />
-            }
-          />
-
-          {/* Visual Insights card — Mermaid charts */}
-          {/* Visual Insights card — Mermaid charts */}
-          <CarouselCard
-            title="Visual Insights"
-            icon={
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M3 9h18M9 21V9" />
-              </svg>
-            }
-            items={charts}
-            renderItem={(chart, i) => (
-              <MermaidChart
-                key={`chart-${i}`}
-                code={chart.mermaidCode}
-                id={`chart-${i}`}
-                title={chart.title}
-                narration={chart.narration}
-              />
-            )}
-            emptyState={
-              <EmptyState
-                icon="📊"
-                message="Infographics and charts will render here when data claims are detected in the conversation."
-              />
-            }
-          />
-
-          {/* Referenced Articles card */}
-          {/* Referenced Articles card */}
-          <CarouselCard
-            title="Referenced Articles"
-            icon={
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
-            }
-            items={references}
-            renderItem={(ref, i) => (
-              <ReferenceCard key={`ref-${i}`} sources={ref.sources} query={ref.query} />
-            )}
-            emptyState={
-              <EmptyState
-                icon="🔗"
-                message="Source references will appear here when external claims or citations are detected."
-              />
-            }
-          />
-
-          {/* Context Matches card (Emails, Docs, Calendar, Slack) */}
-          {contextMatches.length > 0 && (
-            <CarouselCard
-              title="Related Context"
-              icon={
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              }
-              items={contextMatches.flatMap((ctx) =>
-                ctx.matches.map((match) => ({ match, matchType: ctx.matchType }))
-              )}
-              renderItem={(item) => (
-                <ContextCard key={item.match.id} match={item.match} matchType={item.matchType} />
-              )}
-              emptyState={null} // Should not happen given outer check, but satisfy type
+          <div className="grid grid-cols-2 gap-4">
+            <InsightCard
+              title="Objections"
+              icon={<span className="text-sm">⚠️</span>}
+              items={objections}
+              emptyState={<EmptyState icon="🧩" message="No objections detected yet." />}
+              renderItem={(item) => <ObjectionItem key={item.id} item={item} />}
             />
-          )}
+
+            <InsightCard
+              title="Buying Signals"
+              icon={<span className="text-sm">✨</span>}
+              items={buyingSignals}
+              emptyState={<EmptyState icon="🧭" message="Listening for buying signals..." />}
+              renderItem={(item) => <SignalItem key={item.id} item={item} />}
+            />
+
+            <InsightCard
+              title="Next Steps"
+              icon={<span className="text-sm">✅</span>}
+              items={nextSteps}
+              emptyState={<EmptyState icon="🗓️" message="Recommended next steps will show here." />}
+              renderItem={(item) => <NextStepItem key={item.id} item={item} />}
+            />
+
+            <InsightCard
+              title="Coaching Tips"
+              icon={<span className="text-sm">🎧</span>}
+              items={coachingTips}
+              emptyState={<EmptyState icon="🎯" message="Live coaching tips will appear in the moment." />}
+              renderItem={(item) => <CoachingItem key={item.id} item={item} />}
+            />
+          </div>
         </main>
 
-        {/* ─── RIGHT: Session info ─────────────────────── */}
         <aside className="relative z-10 flex w-72 shrink-0 flex-col gap-4 overflow-y-auto">
-          {/* Session Info card */}
           <div className="rounded-3xl border border-[var(--glass-border)] glass-card p-5 shadow-sm">
             <h3 className="mb-4 text-sm font-semibold text-[var(--foreground)]">Session Info</h3>
             <div className="grid grid-cols-2 gap-3">
               <StatTile label="Words" value={stats.words} icon="📝" />
-              <StatTile label="Highlights" value={stats.highlights} icon="💡" />
-              <StatTile label="Charts" value={stats.charts} icon="📊" />
-              <StatTile label="References" value={stats.references} icon="🔗" />
+              <StatTile label="Signals" value={stats.signals} icon="✨" />
+              <StatTile label="Objections" value={stats.objections} icon="⚠️" />
+              <StatTile label="Warnings" value={stats.warnings} icon="🛡️" />
             </div>
             <div className="mt-4 border-t border-[var(--glass-border)] pt-3">
               <div className="flex items-center justify-between text-xs text-[var(--foreground-muted)]">
@@ -380,50 +274,30 @@ export function MainLayout() {
                   {sessionId ? `${sessionId.slice(0, 16)}…` : 'Initializing...'}
                 </span>
               </div>
+              <div className="mt-2 flex items-center justify-between text-xs text-[var(--foreground-muted)]">
+                <span>Call</span>
+                <span className="font-mono text-[11px] text-[var(--foreground-subtle)]">
+                  {callId ? `${callId.slice(0, 16)}…` : 'Pending...'}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Agent Pipeline Status card */}
-          <div className="rounded-3xl border border-[var(--glass-border)] glass-card p-5 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Agent Pipeline</h3>
-            <div className="space-y-2.5">
-              {(['orchestrator', 'chart', 'reference', 'context', 'summary'] as const).map(
-                (agent) => {
-                  const status = agentStatuses[agent] ?? 'idle';
-                  return (
-                    <div key={agent} className="flex items-center justify-between">
-                      <span className="text-xs capitalize text-[var(--foreground-muted)]">{agent}</span>
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${status === 'processing'
-                          ? 'bg-amber-500/10 text-amber-500'
-                          : status === 'complete'
-                            ? 'bg-emerald-500/10 text-emerald-500'
-                            : status === 'error'
-                              ? 'bg-red-500/10 text-red-500'
-                              : 'bg-[var(--bg-secondary)] text-[var(--foreground-muted)]'
-                          }`}
-                      >
-                        <div
-                          className={`h-1.5 w-1.5 rounded-full ${STATUS_COLORS[status] ?? 'bg-slate-700'} ${status === 'processing' ? 'animate-pulse' : ''
-                            }`}
-                        />
-                        {status}
-                      </span>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          </div>
+          <InsightCard
+            title="Compliance"
+            icon={<span className="text-sm">🛡️</span>}
+            items={complianceWarnings}
+            emptyState={<EmptyState icon="🧘" message="No compliance warnings detected." />}
+            renderItem={(item) => <ComplianceItem key={item.id} item={item} />}
+          />
 
-          {/* Quick Guide card */}
           <div className="rounded-3xl border border-[var(--glass-border)] glass-card p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">How It Works</h3>
             <div className="space-y-3">
               {[
-                { step: '1', text: 'Click the mic button to start recording', color: 'bg-blue-500' },
-                { step: '2', text: 'Speak naturally — AI analyzes in real-time', color: 'bg-violet-500' },
-                { step: '3', text: 'Charts, references & summaries appear automatically', color: 'bg-emerald-500' },
+                { step: '1', text: 'Start the call to stream audio to Smallest.ai', color: 'bg-blue-500' },
+                { step: '2', text: 'Mastra agents analyze signals and objections live', color: 'bg-violet-500' },
+                { step: '3', text: 'Next steps and compliance alerts update in real time', color: 'bg-emerald-500' },
               ].map((item) => (
                 <div key={item.step} className="flex items-start gap-2.5">
                   <div
@@ -442,44 +316,90 @@ export function MainLayout() {
   );
 }
 
-/* ─── Sub-components ──────────────────────────────────── */
-
-const BULLET_CATEGORY_STYLES = {
-  key_point: { color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20', icon: '●', label: 'Key Point' },
-  decision: { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: '✓', label: 'Decision' },
-  action_item: { color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20', icon: '⚑', label: 'Action' },
-  question: { color: 'text-violet-500', bg: 'bg-violet-500/10', border: 'border-violet-500/20', icon: '?', label: 'Question' },
-};
-
-function OverviewBullet({
-  bullet,
-}: {
-  bullet: {
-    id: string;
-    text: string;
-    category: 'key_point' | 'decision' | 'action_item' | 'question';
-    owner?: string;
-  };
-}) {
-  const style = BULLET_CATEGORY_STYLES[bullet.category];
+function ObjectionItem({ item }: { item: Objection }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
       transition={{ type: 'spring', duration: 0.35 }}
-      className={`flex items-start gap-2.5 rounded-xl border ${style.border} ${style.bg} px-3.5 py-2.5`}
+      className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2"
     >
-      <span className={`mt-0.5 text-xs font-semibold ${style.color}`}>{style.icon}</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[13px] leading-relaxed text-[var(--foreground)]">{bullet.text}</p>
-        {bullet.owner && (
-          <p className="mt-0.5 text-[11px] text-[var(--foreground-subtle)]">Assigned: {bullet.owner}</p>
-        )}
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] uppercase text-red-400">{item.type}</span>
+        <span className="text-[10px] text-[var(--foreground-subtle)]">{item.severity}</span>
       </div>
-      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${style.color} ${style.bg}`}>
-        {style.label}
-      </span>
+      <p className="mt-1 text-[13px] text-[var(--foreground)]">{item.text}</p>
+    </motion.div>
+  );
+}
+
+function SignalItem({ item }: { item: BuyingSignal }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', duration: 0.35 }}
+      className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2"
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] uppercase text-emerald-500">{item.type}</span>
+        <span className="text-[10px] text-[var(--foreground-subtle)]">Score {item.score}</span>
+      </div>
+      <p className="mt-1 text-[13px] text-[var(--foreground)]">{item.text}</p>
+    </motion.div>
+  );
+}
+
+function NextStepItem({ item }: { item: NextStep }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', duration: 0.35 }}
+      className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3 py-2"
+    >
+      <p className="text-[13px] text-[var(--foreground)]">{item.text}</p>
+      {item.owner && (
+        <p className="mt-1 text-[10px] text-[var(--foreground-subtle)]">Owner: {item.owner}</p>
+      )}
+    </motion.div>
+  );
+}
+
+function CoachingItem({ item }: { item: CoachingTip }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', duration: 0.35 }}
+      className="rounded-xl border border-violet-500/20 bg-violet-500/10 px-3 py-2"
+    >
+      <p className="text-[11px] uppercase text-violet-400">{item.category}</p>
+      <p className="mt-1 text-[13px] text-[var(--foreground)]">{item.title}</p>
+      <p className="mt-1 text-[12px] text-[var(--foreground-muted)]">{item.detail}</p>
+    </motion.div>
+  );
+}
+
+function ComplianceItem({ item }: { item: ComplianceWarning }) {
+  const severityColor =
+    item.severity === 'critical' ? 'text-red-500' : item.severity === 'warning' ? 'text-amber-400' : 'text-blue-400';
+  const severityBg =
+    item.severity === 'critical' ? 'bg-red-500/10 border-red-500/20' : item.severity === 'warning'
+      ? 'bg-amber-500/10 border-amber-500/20' : 'bg-blue-500/10 border-blue-500/20';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', duration: 0.35 }}
+      className={`rounded-xl border px-3 py-2 ${severityBg}`}
+    >
+      <div className="flex items-center justify-between">
+        <span className={`text-[11px] uppercase ${severityColor}`}>{item.severity}</span>
+        <span className="text-[10px] text-[var(--foreground-subtle)]">{item.ruleId}</span>
+      </div>
+      <p className="mt-1 text-[13px] text-[var(--foreground)]">{item.text}</p>
     </motion.div>
   );
 }

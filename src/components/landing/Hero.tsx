@@ -48,7 +48,7 @@ export function Hero() {
                     transition={{ delay: 1.2, duration: 0.8 }}
                     className="text-2xl md:text-3xl font-light text-[var(--foreground-muted)] max-w-3xl mx-auto mb-16 leading-relaxed"
                 >
-                    EchoLens transforms your pitch into a living visual experience.
+                    Momentum transforms your pitch into a living visual experience.
                 </motion.p>
 
                 {/* CTA */}

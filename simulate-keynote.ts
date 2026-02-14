@@ -3,9 +3,9 @@ import WebSocket from 'ws';
 import fetch from 'node-fetch';
 
 /**
- * 🎤 EchoLens Keynote Demo Simulation
+ * 🎤 Momentum Keynote Demo Simulation
  * 
- * This script simulates a live keynote presentation where EchoLens
+ * This script simulates a live keynote presentation where Momentum
  * PROVES ITS OWN VALUE by surfacing relevant context as the presenter speaks.
  * 
  * The meta-demo: "We built software for presentations... 
@@ -19,7 +19,7 @@ const SESSION_ID = 'keynote-demo-session';
 // ═══════════════════════════════════════════════════════════════════════════════
 // 🎬 THE KEYNOTE SCRIPT
 // Each step represents something the presenter says.
-// EchoLens will detect intents and surface relevant context in real-time.
+// Momentum will detect intents and surface relevant context in real-time.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const KEYNOTE_SCRIPT = [
@@ -49,11 +49,11 @@ const KEYNOTE_SCRIPT = [
     },
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // ACT 2: THE SOLUTION (Reveal EchoLens)
+    // ACT 2: THE SOLUTION (Reveal Momentum)
     // ─────────────────────────────────────────────────────────────────────────────
     {
         section: '💡 ACT 2: THE SOLUTION',
-        text: "This brings me to our key decision today: we need real-time intelligence during presentations, not after them. We need EchoLens.",
+        text: "This brings me to our key decision today: we need real-time intelligence during presentations, not after them. We need Momentum.",
         expect: "DECISION → Summary card highlighting the key decision",
         wait: 4000
     },
@@ -73,7 +73,7 @@ const KEYNOTE_SCRIPT = [
     // ─────────────────────────────────────────────────────────────────────────────
     {
         section: '🔧 ACT 3: THE TECHNOLOGY',
-        text: "EchoLens uses 9 different intent types to understand what you're saying: from data claims and document mentions to decisions and action items.",
+        text: "Momentum uses 9 different intent types to understand what you're saying: from data claims and document mentions to decisions and action items.",
         expect: "DATA_CLAIM → Chart showing 9 intent types",
         wait: 4000
     },
@@ -98,12 +98,12 @@ const KEYNOTE_SCRIPT = [
     // ─────────────────────────────────────────────────────────────────────────────
     {
         section: '🤯 ACT 4: THE META-MOMENT',
-        text: "Here's the beautiful part: everything I've been saying during this presentation? EchoLens has been processing it in real-time. Look at the context panel.",
+        text: "Here's the beautiful part: everything I've been saying during this presentation? Momentum has been processing it in real-time. Look at the context panel.",
         expect: "KEY_POINT → Explanation of the meta-demo",
         wait: 5000
     },
     {
-        text: "We didn't just build software for presentations. We built software that proves itself BY WORKING during presentations. That's the EchoLens difference.",
+        text: "We didn't just build software for presentations. We built software that proves itself BY WORKING during presentations. That's the Momentum difference.",
         expect: "KEY_POINT → The value proposition crystallized",
         wait: 4000
     },
@@ -118,7 +118,7 @@ const KEYNOTE_SCRIPT = [
         wait: 4000
     },
     {
-        text: "Our action item for you: imagine your next big presentation with EchoLens. Every claim backed by data. Every reference instantly surfaced. Every decision captured.",
+        text: "Our action item for you: imagine your next big presentation with Momentum. Every claim backed by data. Every reference instantly surfaced. Every decision captured.",
         expect: "ACTION_ITEM → Summary of the call to action",
         wait: 4000
     },
@@ -139,7 +139,7 @@ async function runKeynoteDemo() {
     console.log('║                                                                   ║');
     console.log('║        🎤  ECHOLENS KEYNOTE DEMO SIMULATION  🎤                   ║');
     console.log('║                                                                   ║');
-    console.log('║    Watch as EchoLens proves its value during this presentation   ║');
+    console.log('║    Watch as Momentum proves its value during this presentation   ║');
     console.log('║                                                                   ║');
     console.log('╚══════════════════════════════════════════════════════════════════╝');
     console.log('\n');
@@ -209,7 +209,7 @@ async function runKeynoteDemo() {
     console.log('║                                                                   ║');
     console.log('║        🎉  KEYNOTE DEMO COMPLETE  🎉                              ║');
     console.log('║                                                                   ║');
-    console.log('║    Thank you for watching EchoLens in action!                     ║');
+    console.log('║    Thank you for watching Momentum in action!                     ║');
     console.log('║                                                                   ║');
     console.log('╚══════════════════════════════════════════════════════════════════╝');
     console.log('\n');

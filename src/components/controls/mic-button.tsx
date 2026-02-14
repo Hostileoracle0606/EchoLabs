@@ -1,92 +1,33 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { motion } from 'motion/react';
-import { useDeepgram } from '@/hooks/use-deepgram';
-import { useEchoLensStore } from '@/store/echolens-store';
-import { TranscriptBufferManager } from '@/lib/transcript-buffer';
+import { useVoiceSession } from '@/hooks/use-voice-session';
+import { useMomentumStore } from '@/store/momentum-store';
 
 export function MicButton() {
-  const { isRecording, setRecording, addTranscriptChunk, setInterimText, sessionId } =
-    useEchoLensStore();
+  const { isRecording, setRecording, sessionId, callId } =
+    useMomentumStore();
 
-  const bufferRef = useRef(new TranscriptBufferManager(sessionId));
-  const sendIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const sweepIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const onTranscript = useCallback(
-    (text: string, isFinal: boolean) => {
-      if (isFinal) {
-        addTranscriptChunk(text, true);
-        bufferRef.current.addChunk(text, true);
-      } else {
-        setInterimText(text);
-      }
-    },
-    [addTranscriptChunk, setInterimText]
-  );
-
-  const { start: startDeepgram, stop: stopDeepgram } = useDeepgram({
-    onTranscript,
-    onError: (err) => console.error('[Deepgram]', err),
+  const { start, stop } = useVoiceSession({
+    sessionId,
+    callId: callId || `call-${sessionId}`,
+    onError: (err) => console.error('[Voice]', err),
   });
-
-  const sendToOrchestrator = useCallback(async () => {
-    const text = bufferRef.current.flushUnsent();
-    if (!text.trim()) return;
-
-    try {
-      await fetch('/api/orchestrator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text,
-          timestamp: Date.now(),
-          sessionId,
-          context: bufferRef.current.getRollingTranscript(180000), // last 3 min
-        }),
-      });
-    } catch (err) {
-      console.error('[Orchestrator send]', err);
-    }
-  }, [sessionId]);
-
-  const sendSweep = useCallback(async () => {
-    const fullText = bufferRef.current.getRollingTranscript(180000);
-    if (!fullText.trim()) return;
-
-    try {
-      await fetch('/api/agents/summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'sweep',
-          fullTranscript: fullText,
-          sessionId,
-        }),
-      });
-    } catch (err) {
-      console.error('[Summary sweep]', err);
-    }
-  }, [sessionId]);
 
   const handleToggle = useCallback(async () => {
     if (isRecording) {
-      stopDeepgram();
+      stop();
       setRecording(false);
-      if (sendIntervalRef.current) clearInterval(sendIntervalRef.current);
-      if (sweepIntervalRef.current) clearInterval(sweepIntervalRef.current);
-      // Send any remaining text
-      await sendToOrchestrator();
     } else {
-      await startDeepgram();
-      setRecording(true);
-      // Send transcript chunks every 4 seconds
-      sendIntervalRef.current = setInterval(sendToOrchestrator, 4000);
-      // Run summary sweep every 30 seconds
-      sweepIntervalRef.current = setInterval(sendSweep, 30000);
+      try {
+        await start();
+        setRecording(true);
+      } catch {
+        setRecording(false);
+      }
     }
-  }, [isRecording, startDeepgram, stopDeepgram, setRecording, sendToOrchestrator, sendSweep]);
+  }, [isRecording, start, stop, setRecording]);
 
   return (
     <motion.button

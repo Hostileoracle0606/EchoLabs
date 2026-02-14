@@ -1,4 +1,4 @@
-// EchoLens Shared Types
+// Momentum Shared Types
 
 // ========================================
 // Aura State Machine Types

@@ -7,6 +7,8 @@ interface TranscriptChunkDisplay {
   id: string;
   text: string;
   isFinal: boolean;
+  speaker: 'customer' | 'agent' | 'system';
+  timestamp: number;
 }
 
 interface TranscriptPanelProps {
@@ -40,21 +42,27 @@ export function TranscriptPanel({ chunks, interimText }: TranscriptPanelProps) {
           Live Transcript
         </h2>
       </div>
-      <div className="flex-1 space-y-0.5 text-[13px] leading-relaxed">
+      <div className="flex-1 space-y-3 text-[13px] leading-relaxed">
         <AnimatePresence mode="popLayout">
           {chunks.map((chunk) => (
-            <motion.span
+            <motion.div
               key={chunk.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-[var(--foreground)]"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col"
             >
-              {chunk.text}{' '}
-            </motion.span>
+              <span className="text-[10px] uppercase tracking-wide text-[var(--foreground-subtle)]">
+                {chunk.speaker}
+              </span>
+              <span className="text-[var(--foreground)]">{chunk.text}</span>
+            </motion.div>
           ))}
         </AnimatePresence>
         {interimText && (
-          <span className="text-[var(--foreground-muted)] italic">{interimText}</span>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-wide text-[var(--foreground-subtle)]">listening</span>
+            <span className="text-[var(--foreground-muted)] italic">{interimText}</span>
+          </div>
         )}
         {chunks.length === 0 && !interimText && (
           <p className="py-4 text-center text-xs text-[var(--foreground-subtle)]">

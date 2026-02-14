@@ -1,6 +1,6 @@
-# EchoLens → AI Sales Call Advisor (Mastra.ai + Smallest.ai + Clientzone) Refactor Plan
+# Momentum → AI Sales Call Advisor (Mastra.ai + Smallest.ai + Clientzone) Refactor Plan
 
-This document updates the previous refactor plan to incorporate Mastra.ai, Smallest.ai, and Clientzone (Mantra.ai) based on `mastra_smallest_sales_agent.md`. It maps the current EchoLens codebase to the target architecture, and provides an end‑to‑end development plan with schema migration guidance.
+This document updates the previous refactor plan to incorporate Mastra.ai, Smallest.ai, and Clientzone (Mantra.ai) based on `mastra_smallest_sales_agent.md`. It maps the current Momentum codebase to the target architecture, and provides an end‑to‑end development plan with schema migration guidance.
 
 **Reference Diagram (from request)**
 
@@ -73,7 +73,7 @@ The file `mastra_smallest_sales_agent.md` does not explicitly mention Clientzone
 **End‑to‑End Runtime Architecture (Detailed)**
 
 1. Call Ingestion
-   A call source (phone/WebRTC/SIP trunk) sends raw audio into the system. EchoLens’s current mic‑based flow becomes a call‑provider audio stream. This is the entry point for the voice layer.
+   A call source (phone/WebRTC/SIP trunk) sends raw audio into the system. Momentum’s current mic‑based flow becomes a call‑provider audio stream. This is the entry point for the voice layer.
 
 2. Smallest.ai Voice Layer
    Smallest.ai ATOMS creates a real‑time transcription session per call and streams partial and final transcripts. Smallest.ai WAVES provides 100ms TTS for agent responses. The voice layer supports barge‑in/interrupts and low‑latency end‑of‑speech detection.
@@ -93,27 +93,27 @@ The file `mastra_smallest_sales_agent.md` does not explicitly mention Clientzone
 7. Observability and Analytics
    Mastra telemetry provides tracing across agent calls, workflows, tools, and memory operations. Custom analytics track call duration, talk ratio, objections, and conversion outcomes.
 
-**How EchoLens Maps to the Target Architecture**
+**How Momentum Maps to the Target Architecture**
 
 1. Call Ingestion and Voice Layer
-   Current EchoLens uses `use-deepgram.ts` in the browser to stream mic audio. For sales calls, this must be replaced with the Smallest.ai voice pipeline on the server side. The existing transcript buffer and live transcript UI can be reused.
+   Current Momentum uses a browser mic stream for transcription. For sales calls, this must be replaced with the Smallest.ai voice pipeline on the server side. The existing transcript buffer and live transcript UI can be reused.
 
 2. Orchestration
-   The EchoLens orchestrator in `src/services/orchestrator/orchestrator.service.ts` becomes the integration layer between transcripts and Mastra agents. It will shift from in‑house intent classification to Mastra’s agent and workflow engine.
+   The Momentum orchestrator in `src/services/orchestrator/orchestrator.service.ts` becomes the integration layer between transcripts and Mastra agents. It will shift from in‑house intent classification to Mastra’s agent and workflow engine.
 
 3. Agents
-   EchoLens agents map to Mastra sub‑agents. The existing chart/reference/summary agents are replaced by Product Expert, Objection Handler, Qualifier, Closing, and Negotiator agents as described in `mastra_smallest_sales_agent.md`.
+   Momentum agents map to Mastra sub‑agents. The existing chart/reference/summary agents are replaced by Product Expert, Objection Handler, Qualifier, Closing, and Negotiator agents as described in `mastra_smallest_sales_agent.md`.
 
 4. UI
    The current UI cards become coaching cards. `MainLayout` can be repurposed to show live transcript, detected objections, buying signals, and recommended next steps.
 
 5. Data Layer
-   EchoLens currently uses mock context JSON. This is replaced by CRM and knowledge base integrations and persistent storage (PostgreSQL + Redis + Pinecone).
+   Momentum currently uses mock context JSON. This is replaced by CRM and knowledge base integrations and persistent storage (PostgreSQL + Redis + Pinecone).
 
 **Key Modules to Add and Refactor**
 
 1. Smallest.ai Voice Pipeline
-   Create `src/voice/smallest-voice-pipeline.ts` using the exact structure described in `mastra_smallest_sales_agent.md`. This will replace Deepgram in production while maintaining the streaming transcript interface.
+   Create `src/voice/smallest-voice-pipeline.ts` using the exact structure described in `mastra_smallest_sales_agent.md`. This replaces the legacy mic transcription path while maintaining the streaming transcript interface.
 
 2. Mastra Agents and Workflows
    Add `src/mastra/agents` and `src/mastra/workflows` with Sales Director, Product Expert, Objection Handler, Qualifier, Closing, and Negotiator agents. Implement discovery, demo, objection, and closing workflows.
@@ -143,13 +143,13 @@ The file `mastra_smallest_sales_agent.md` does not explicitly mention Clientzone
 
 ### Phase 1: Voice Layer Replacement
 1. Add Smallest.ai voice pipeline and session management.
-2. Replace Deepgram‑based client hook with server‑side audio ingestion.
+2. Replace legacy client mic hook with server‑side audio ingestion.
 3. Maintain WebSocket transcript stream to UI.
 
 ### Phase 2: Mastra Agent Integration
 1. Initialize Mastra in `src/mastra/index.ts` with telemetry enabled.
 2. Add Sales Director and sub‑agents per the reference file.
-3. Replace EchoLens intent classification with Mastra agent routing.
+3. Replace Momentum intent classification with Mastra agent routing.
 
 ### Phase 3: Tools and Workflows
 1. Add Mastra workflows for discovery, demo, objection handling, and closing.
@@ -208,10 +208,10 @@ Goal: introduce speaker diarization, call session metadata, and new agent output
    Add `schemaVersion` to transcript segments, agent payloads, and session metadata.
 
 2. Dual‑write strategy
-   Emit both legacy EchoLens payloads and new sales‑advisor payloads during transition.
+   Emit both legacy Momentum payloads and new sales‑advisor payloads during transition.
 
 3. Compatibility adapters
-   Update `use-echolens-ws.ts` and `echolens-store.ts` to accept both versions and normalize into UI models.
+   Update `use-momentum-ws.ts` and `momentum-store.ts` to accept both versions and normalize into UI models.
 
 4. Data backfill
    Write a migration script to add default speaker fields and call IDs to existing transcript records.
@@ -224,7 +224,7 @@ Goal: introduce speaker diarization, call session metadata, and new agent output
 
 **Files to Update in Current Codebase**
 
-1. `src/hooks/use-deepgram.ts`
+1. Legacy mic hook (removed)
    Replace with server‑side audio ingestion and Smallest.ai session creation.
 
 2. `src/lib/transcript-buffer.ts`
@@ -239,7 +239,7 @@ Goal: introduce speaker diarization, call session metadata, and new agent output
 5. `src/components/layout/main-layout.tsx`
    Replace chart and reference panels with coaching insights and objection handling UI.
 
-6. `src/store/echolens-store.ts`
+6. `src/store/momentum-store.ts`
    Add new state slices for objections, buying signals, next steps, and compliance warnings.
 
 **Deliverables Checklist**
@@ -260,4 +260,4 @@ Goal: introduce speaker diarization, call session metadata, and new agent output
 3. Delivery method (push or pull) for Clientzone updates.
 4. Data retention and compliance rules for Clientzone artifacts.
 
-This refactor plan aligns EchoLens with the full production architecture described in `mastra_smallest_sales_agent.md`, while retaining the real‑time UI and WebSocket backbone from the existing codebase.
+This refactor plan aligns Momentum with the full production architecture described in `mastra_smallest_sales_agent.md`, while retaining the real‑time UI and WebSocket backbone from the existing codebase.

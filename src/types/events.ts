@@ -1,3 +1,15 @@
+import type {
+  BuyingSignal,
+  CallSummary,
+  CoachingTip,
+  ComplianceWarning,
+  NextStep,
+  Objection,
+  SalesSignalEnvelope,
+  SalesStage,
+} from './sales';
+import type { SchemaVersion, TranscriptSpeaker } from './transcript';
+
 export type WsEventType =
   | 'transcript:update'
   | 'agent:status'
@@ -7,8 +19,18 @@ export type WsEventType =
   | 'agent:reference'
   | 'agent:context'
   | 'agent:summary'
-  | 'session:start'
-  | 'session:end';
+  | 'session:end'
+  | 'sales:stage'
+  | 'sales:objection'
+  | 'sales:buying-signal'
+  | 'sales:next-step'
+  | 'sales:coaching'
+  | 'sales:compliance'
+  | 'sales:summary'
+  | 'voice:status'
+  | 'voice:start'
+  | 'voice:stop'
+  | 'voice:interrupt';
 
 export interface WsMessage<T = unknown> {
   event: WsEventType;
@@ -73,4 +95,49 @@ export interface ErrorPayload {
   code: string;
   message: string;
   agent?: string;
+}
+
+export interface TranscriptUpdatePayloadV2 {
+  schemaVersion: SchemaVersion;
+  callId: string;
+  sessionId: string;
+  speaker: TranscriptSpeaker;
+  text: string;
+  isFinal: boolean;
+  timestamp: number;
+  confidence?: number;
+}
+
+export interface SalesStagePayload extends SalesSignalEnvelope {
+  stage: SalesStage;
+  confidence: number;
+}
+
+export interface SalesObjectionPayload extends SalesSignalEnvelope {
+  objections: Objection[];
+}
+
+export interface SalesBuyingSignalPayload extends SalesSignalEnvelope {
+  signals: BuyingSignal[];
+}
+
+export interface SalesNextStepPayload extends SalesSignalEnvelope {
+  steps: NextStep[];
+}
+
+export interface SalesCoachingPayload extends SalesSignalEnvelope {
+  tips: CoachingTip[];
+}
+
+export interface SalesCompliancePayload extends SalesSignalEnvelope {
+  warnings: ComplianceWarning[];
+}
+
+export interface SalesSummaryPayload extends SalesSignalEnvelope {
+  summary: CallSummary;
+}
+
+export interface VoiceStatusPayload extends SalesSignalEnvelope {
+  status: 'connected' | 'streaming' | 'stopped' | 'error';
+  message?: string;
 }

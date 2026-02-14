@@ -25,9 +25,9 @@ export function Footer() {
     };
 
     const socials = [
-        { icon: Twitter, href: 'https://twitter.com/echolens', label: 'Twitter' },
-        { icon: Github, href: 'https://github.com/echolens', label: 'GitHub' },
-        { icon: Linkedin, href: 'https://linkedin.com/company/echolens', label: 'LinkedIn' },
+        { icon: Twitter, href: 'https://twitter.com/momentum', label: 'Twitter' },
+        { icon: Github, href: 'https://github.com/momentum', label: 'GitHub' },
+        { icon: Linkedin, href: 'https://linkedin.com/company/momentum', label: 'LinkedIn' },
     ];
 
     return (
@@ -38,10 +38,10 @@ export function Footer() {
                     <div className="col-span-2">
                         <Link href="/" className="inline-flex items-center gap-2 mb-4">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">E</span>
+                                <span className="text-white font-bold text-sm">M</span>
                             </div>
                             <span className="text-xl font-semibold text-[var(--foreground)]">
-                                EchoLens
+                                Momentum
                             </span>
                         </Link>
                         <p className="text-sm text-[var(--foreground-muted)] max-w-xs mb-4">
@@ -118,7 +118,7 @@ export function Footer() {
                 {/* Bottom */}
                 <div className="pt-8 border-t border-[var(--glass-border)] flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm text-[var(--foreground-subtle)]">
-                        © {currentYear} EchoLens. All rights reserved.
+                        © {currentYear} Momentum. All rights reserved.
                     </p>
                     <p className="text-sm text-[var(--foreground-subtle)]">
                         Built with ❤️ for presenters everywhere

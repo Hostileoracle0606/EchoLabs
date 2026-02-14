@@ -8,7 +8,7 @@ const steps = [
     {
         icon: Upload,
         title: 'Upload Your Data',
-        description: 'Drop in Excel files, CSVs, PDFs, or slide decks. EchoLens pre-parses and indexes everything.',
+        description: 'Drop in Excel files, CSVs, PDFs, or slide decks. Momentum pre-parses and indexes everything.',
         color: '#3B82F6',
     },
     {

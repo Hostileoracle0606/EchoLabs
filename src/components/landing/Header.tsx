@@ -41,10 +41,10 @@ export function Header() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            <span className="text-white font-bold">E</span>
+                            <span className="text-white font-bold">M</span>
                         </motion.div>
                         <span className="text-xl font-semibold text-[var(--foreground)] group-hover:text-gradient-accent transition-all">
-                            EchoLens
+                            Momentum
                         </span>
                     </Link>
 

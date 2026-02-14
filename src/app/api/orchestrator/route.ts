@@ -7,6 +7,10 @@ const OrchestratorRequestSchema = z.object({
   timestamp: z.number(),
   sessionId: z.string().min(1),
   context: z.string().optional(),
+  callId: z.string().optional(),
+  customerId: z.string().optional(),
+  speaker: z.enum(['customer', 'agent', 'system']).optional(),
+  schemaVersion: z.number().optional(),
 });
 
 import { broadcast } from '@/websocket/ws-server';
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // 1. Set status to processing
     broadcast('agent:status', sessionId, {
-      agent: 'orchestrator',
+      agent: 'sales-director',
       status: 'processing',
     });
 
@@ -36,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Set status to complete
     broadcast('agent:status', sessionId, {
-      agent: 'orchestrator',
+      agent: 'sales-director',
       status: 'complete',
     });
 
@@ -46,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     if (sessionId) {
       broadcast('agent:status', sessionId, {
-        agent: 'orchestrator',
+        agent: 'sales-director',
         status: 'error',
       });
     }
