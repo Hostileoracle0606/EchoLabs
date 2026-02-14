@@ -77,4 +77,3 @@ The UI listens for:
 - `voice:status`
 
 
-Ty :)
