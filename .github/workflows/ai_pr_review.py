@@ -46,44 +46,44 @@ def main():
         diff = diff[:MAX_DIFF_CHARS] + "\n\n[diff truncated]\n"
 
     prompt = f"""
-You are an expert software engineer performing a pull request review.
+        You are an expert software engineer performing a pull request review.
+        
+        Repository: {repo}
+        Pull Request: {pr_number}
+        Head SHA: {head_sha}
+        
+        Review goals:
+        - Identify correctness bugs, edge cases, and security issues
+        - Flag breaking changes and missing tests
+        - Call out performance concerns
+        - Suggest concrete, actionable improvements
+        - Be concise and professional
+        
+        Output format (Markdown):
+        1. Summary (3–6 bullets)
+        2. High-risk issues (if any) with file hints
+        3. Medium / low-risk issues
+        4. Tests to add or verify
+        5. Nitpicks (optional)
+        
+        Unified diff:
+        ```diff
+        {diff}
+        """.strip()
 
-Repository: {repo}
-Pull Request: {pr_number}
-Head SHA: {head_sha}
-
-Review goals:
-- Identify correctness bugs, edge cases, and security issues
-- Flag breaking changes and missing tests
-- Call out performance concerns
-- Suggest concrete, actionable improvements
-- Be concise and professional
-
-Output format (Markdown):
-1. Summary (3–6 bullets)
-2. High-risk issues (if any) with file hints
-3. Medium / low-risk issues
-4. Tests to add or verify
-5. Nitpicks (optional)
-
-Unified diff:
-```diff
-{diff}
-""".strip()
-
-client = OpenAI()  # uses OPENAI_API_KEY from env
-
-response = client.responses.create(
-    model="gpt-5.2-codex",
-    input=prompt,
-)
-
-review_md = response.output_text.strip()
-if not review_md:
-    review_md = "### AI Review\n(No output returned by model.)\n"
-
-with open("ai_review.md", "w", encoding="utf-8") as f:
-    f.write(review_md + "\n")
+    client = OpenAI()  # uses OPENAI_API_KEY from env
     
-if name == "main":
+    response = client.responses.create(
+        model="gpt-5.2-codex",
+        input=prompt,
+    )
+    
+    review_md = response.output_text.strip()
+    if not review_md:
+        review_md = "### AI Review\n(No output returned by model.)\n"
+    
+    with open("ai_review.md", "w", encoding="utf-8") as f:
+        f.write(review_md + "\n")
+    
+if __name__ == "__main__":
     main()
