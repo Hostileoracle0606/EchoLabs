@@ -7,6 +7,7 @@ export function useMomentumWs() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const sessionId = useMomentumStore((s) => s.sessionId);
+  const lastSessionIdRef = useRef<string>('');
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -25,6 +26,7 @@ export function useMomentumWs() {
           payload: {},
         })
       );
+      lastSessionIdRef.current = sessionId;
     };
 
     ws.onmessage = (event) => {
@@ -135,6 +137,22 @@ export function useMomentumWs() {
       }
     };
   }, [connect]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    const ws = wsRef.current;
+    if (ws?.readyState === WebSocket.OPEN && lastSessionIdRef.current !== sessionId) {
+      ws.send(
+        JSON.stringify({
+          event: 'session:start',
+          sessionId,
+          timestamp: Date.now(),
+          payload: {},
+        })
+      );
+      lastSessionIdRef.current = sessionId;
+    }
+  }, [sessionId]);
 
   return { ws: wsRef };
 }
