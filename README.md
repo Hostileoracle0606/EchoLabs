@@ -75,3 +75,6 @@ The UI listens for:
 - `sales:stage`, `sales:objection`, `sales:buying-signal`, `sales:next-step`
 - `sales:coaching`, `sales:compliance`, `sales:summary`
 - `voice:status`
+
+
+Ty :)
