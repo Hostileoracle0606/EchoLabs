@@ -10,6 +10,7 @@ const OrchestratorRequestSchema = z.object({
   callId: z.string().optional(),
   customerId: z.string().optional(),
   speaker: z.enum(['customer', 'agent', 'system']).optional(),
+  // Accept any numeric schema version (backward/forward compatibility)
   schemaVersion: z.number().optional(),
 });
 
