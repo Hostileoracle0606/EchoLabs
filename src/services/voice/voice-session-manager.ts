@@ -22,23 +22,47 @@ export class VoiceSessionManager {
         callId: session.callId,
         sessionId: event.sessionId,
         speaker: event.speaker,
+        speakerId: event.speakerId,
         text: event.text,
         isFinal: false,
         timestamp: event.timestamp,
         confidence: event.confidence,
+        words: event.words,
+        utterances: event.utterances,
+        fullTranscript: event.fullTranscript,
+        language: event.language,
+        languages: event.languages,
       });
     });
 
     this.pipeline.on('final_transcript', async (event) => {
       const session = this.sessions.get(event.sessionId);
       if (!session) return;
-      await processSalesTranscript({
+      broadcast('transcript:update', event.sessionId, {
+        schemaVersion: 2,
+        callId: session.callId,
+        sessionId: event.sessionId,
+        speaker: event.speaker,
+        speakerId: event.speakerId,
+        text: event.text,
+        isFinal: true,
+        timestamp: event.timestamp,
+        confidence: event.confidence,
+        words: event.words,
+        utterances: event.utterances,
+        fullTranscript: event.fullTranscript,
+        language: event.language,
+        languages: event.languages,
+      });
+      void processSalesTranscript({
         sessionId: event.sessionId,
         callId: session.callId,
         text: event.text,
         speaker: event.speaker,
         timestamp: event.timestamp,
-        emitTranscript: true,
+        emitTranscript: false,
+      }).catch((err) => {
+        console.error('[VoiceSessionManager] Failed to process sales transcript:', err);
       });
     });
 
@@ -53,7 +77,9 @@ export class VoiceSessionManager {
     });
   }
 
-  async startSession(metadata: Omit<CallSessionMetadata, 'schemaVersion' | 'startedAt'>) {
+  async startSession(
+    metadata: Omit<CallSessionMetadata, 'schemaVersion' | 'startedAt'>
+  ) {
     const state: VoiceSessionState = {
       schemaVersion: 2,
       callId: metadata.callId,

@@ -102,10 +102,16 @@ export interface TranscriptUpdatePayloadV2 {
   callId: string;
   sessionId: string;
   speaker: TranscriptSpeaker;
+  speakerId?: number;
   text: string;
   isFinal: boolean;
   timestamp: number;
   confidence?: number;
+  words?: any[];
+  utterances?: any[];
+  fullTranscript?: string;
+  language?: string;
+  languages?: string[];
 }
 
 export interface SalesStagePayload extends SalesSignalEnvelope {

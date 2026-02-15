@@ -25,6 +25,7 @@ export interface TranscriptChunkV2 extends TranscriptChunkBase {
   callId: string;
   sessionId: string;
   speaker: TranscriptSpeaker;
+  speakerId?: number;
   confidence?: number;
   words?: TranscriptWord[];
   turnId?: string;
