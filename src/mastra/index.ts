@@ -51,7 +51,7 @@ export class MastraRuntime {
     this.workflows.set(workflow.id, workflow);
   }
 
-  registerTool(tool: ToolDefinition) {
+  registerTool(tool: ToolDefinition<any, any>) {
     this.tools.set(tool.id, tool);
   }
 

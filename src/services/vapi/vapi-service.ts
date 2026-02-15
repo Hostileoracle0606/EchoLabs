@@ -7,7 +7,7 @@ import { vapiConfig, validateVapiConfig } from '@/lib/vapi-config'
  * Handles assistant creation, call management, and phone number operations
  */
 export class VapiService {
-    private client: typeof Vapi.prototype
+    private client: any
 
     constructor() {
         validateVapiConfig()

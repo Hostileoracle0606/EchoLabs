@@ -10,7 +10,7 @@ const OrchestratorRequestSchema = z.object({
   callId: z.string().optional(),
   customerId: z.string().optional(),
   speaker: z.enum(['customer', 'agent', 'system']).optional(),
-  schemaVersion: z.number().optional(),
+  schemaVersion: z.union([z.literal(1), z.literal(2)]).optional(),
 });
 
 import { broadcast } from '@/websocket/ws-server';
