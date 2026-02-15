@@ -43,10 +43,18 @@ type SessionRuntime = {
 const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000
 const DEFAULT_SESSION_CLEANUP_MS = 5 * 60 * 1000
 const DEFAULT_LLM_CONCURRENCY = 2
+const DEFAULT_MAX_QUEUE_DEPTH = 100
+const DEFAULT_MAX_SESSION_QUEUE_DEPTH = 20
 
 export class MastraConversationRuntime {
   private sessions = new Map<string, SessionRuntime>()
   private sessionQueues = new Map<string, Promise<void>>()
+  private sessionQueueDepth = new Map<string, number>()
+  private pendingTasks = 0
+  private maxQueueDepth =
+    Number.parseInt(process.env.MASTRA_MAX_QUEUE_DEPTH ?? '', 10) || DEFAULT_MAX_QUEUE_DEPTH
+  private maxSessionQueueDepth =
+    Number.parseInt(process.env.MASTRA_MAX_SESSION_QUEUE_DEPTH ?? '', 10) || DEFAULT_MAX_SESSION_QUEUE_DEPTH
   private promptBuilder = new PromptBuilder()
   private promptInit: Promise<void> | null = null
   private compliance = getComplianceEngine()
@@ -95,6 +103,15 @@ export class MastraConversationRuntime {
 
   async processTranscript(input: MastraConversationInput): Promise<MastraConversationOutput> {
     if (input.speaker === 'agent') {
+      return { response: '' }
+    }
+
+    if (this.pendingTasks >= this.maxQueueDepth) {
+      console.warn('[MastraConversationRuntime] Queue depth limit reached, dropping request.', {
+        pendingTasks: this.pendingTasks,
+        maxQueueDepth: this.maxQueueDepth,
+        sessionId: input.sessionId
+      })
       return { response: '' }
     }
 
@@ -235,7 +252,33 @@ export class MastraConversationRuntime {
 
   private enqueue<T>(sessionId: string, task: () => Promise<T>): Promise<T> {
     const previous = this.sessionQueues.get(sessionId) ?? Promise.resolve()
-    const next = previous.then(task, task)
+    const currentDepth = (this.sessionQueueDepth.get(sessionId) ?? 0) + 1
+    this.sessionQueueDepth.set(sessionId, currentDepth)
+    this.pendingTasks += 1
+
+    if (currentDepth > this.maxSessionQueueDepth) {
+      console.warn('[MastraConversationRuntime] Session queue depth high.', {
+        sessionId,
+        depth: currentDepth,
+        maxSessionQueueDepth: this.maxSessionQueueDepth
+      })
+    }
+
+    const run = async () => {
+      try {
+        return await task()
+      } finally {
+        this.pendingTasks = Math.max(0, this.pendingTasks - 1)
+        const nextDepth = Math.max(0, (this.sessionQueueDepth.get(sessionId) ?? 1) - 1)
+        if (nextDepth === 0) {
+          this.sessionQueueDepth.delete(sessionId)
+        } else {
+          this.sessionQueueDepth.set(sessionId, nextDepth)
+        }
+      }
+    }
+
+    const next = previous.then(run, run)
     this.sessionQueues.set(sessionId, next.then(() => {}, () => {}))
     return next
   }

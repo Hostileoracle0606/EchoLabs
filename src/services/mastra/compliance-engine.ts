@@ -40,12 +40,18 @@ export interface ValidationResult {
     violations: ComplianceViolation[]
 }
 
+export interface ComplianceEngineOptions {
+    rulesText?: string
+    promptText?: string
+}
+
 export class ComplianceEngine {
     private rulesText: string = ''
     private parsedRules: Array<{ id: string; title: string }> = []
     private promptText: string = ''
     private forbiddenPhrases: string[] = []
     private forbiddenPatterns: RegExp[] = []
+    private forbiddenReplacePatterns: RegExp[] = []
 
     // Patterns that indicate policy violations
     private readonly violationPatterns = {
@@ -109,35 +115,50 @@ export class ComplianceEngine {
         ]
     }
 
-    constructor() {
-        this.loadRules()
-        this.loadPrompt()
+    constructor(options: ComplianceEngineOptions = {}) {
+        this.loadRules(options.rulesText)
+        this.loadPrompt(options.promptText)
     }
 
     /**
      * Load RULES.md for reference and future parsing.
      */
-    private loadRules(): void {
-        try {
-            const filePath = join(process.cwd(), 'prompts', 'RULES.md')
-            this.rulesText = readFileSync(filePath, 'utf-8').trim()
-        } catch {
-            this.rulesText = ''
+    private loadRules(overrideText?: string): void {
+        if (typeof overrideText === 'string') {
+            this.rulesText = overrideText.trim()
+        } else {
+            try {
+                const filePath = join(process.cwd(), 'prompts', 'RULES.md')
+                this.rulesText = readFileSync(filePath, 'utf-8').trim()
+            } catch (err) {
+                console.warn('[ComplianceEngine] RULES.md not found, using defaults:', err)
+                this.rulesText = ''
+            }
         }
         this.parsedRules = this.parseRules(this.rulesText)
     }
 
-    private loadPrompt(): void {
-        try {
-            const filePath = join(process.cwd(), 'prompts', 'PROMPT.md')
-            this.promptText = readFileSync(filePath, 'utf-8').trim()
-        } catch {
-            this.promptText = ''
+    private loadPrompt(overrideText?: string): void {
+        if (typeof overrideText === 'string') {
+            this.promptText = overrideText.trim()
+        } else {
+            try {
+                const filePath = join(process.cwd(), 'prompts', 'PROMPT.md')
+                this.promptText = readFileSync(filePath, 'utf-8').trim()
+            } catch (err) {
+                console.warn('[ComplianceEngine] PROMPT.md not found, using defaults:', err)
+                this.promptText = ''
+            }
         }
 
         const parsed = this.parseForbiddenPhrases(this.promptText)
         this.forbiddenPhrases = parsed.length > 0 ? parsed : this.getDefaultForbiddenPhrases()
-        this.forbiddenPatterns = this.forbiddenPhrases.map((phrase) => new RegExp(this.escapeRegExp(phrase), 'i'))
+        this.forbiddenPatterns = this.forbiddenPhrases.map(
+            (phrase) => new RegExp(this.escapeRegExp(phrase), 'i')
+        )
+        this.forbiddenReplacePatterns = this.forbiddenPhrases.map(
+            (phrase) => new RegExp(this.escapeRegExp(phrase), 'ig')
+        )
     }
 
     /**
@@ -367,8 +388,8 @@ export class ComplianceEngine {
     sanitize(response: string, context?: ComplianceContext): string {
         let sanitized = response
 
-        // Remove forbidden phrases
-        for (const pattern of this.forbiddenPatterns) {
+        // Remove forbidden phrases (all occurrences)
+        for (const pattern of this.forbiddenReplacePatterns) {
             sanitized = sanitized.replace(pattern, '')
         }
 

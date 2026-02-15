@@ -5,6 +5,7 @@ import type { TranscriptSpeaker } from '@/types/transcript';
 export interface SmallestVoiceConfig {
   apiKey?: string;
   region?: string;
+  ttsSampleRate?: number;
 }
 
 export interface VoiceSessionConfig {
@@ -138,6 +139,10 @@ export class SmallestVoicePipeline extends EventEmitter {
 
     const connectionTimeoutMs = 15000;
     const requestTimeoutMs = 65000;
+    const sampleRate =
+      this.config.ttsSampleRate ||
+      Number.parseInt(process.env.SMALLEST_TTS_SAMPLE_RATE ?? '', 10) ||
+      44100;
     let connectionTimer: NodeJS.Timeout | null = setTimeout(() => {
       finalize(new Error('TTS connection timeout'));
       try {
@@ -189,8 +194,8 @@ export class SmallestVoicePipeline extends EventEmitter {
             JSON.stringify({
               voice_id: session.cfg.voiceId,
               text,
-              // Lightning v3.1 is a 44 kHz model.
-              sample_rate: 44100,
+              // Lightning v3.1 is a 44 kHz model by default.
+              sample_rate: sampleRate,
               speed: 1,
             })
           );
