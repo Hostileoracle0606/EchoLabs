@@ -100,13 +100,12 @@ export class ComplianceEngine {
         uncertainty: /\b(not sure|not certain|maybe|i (?:don't|do not) know|i'?m unsure|not ready|not really)\b/i,
         strongCommitment: /\b(absolutely|definitely|for sure|let's do it|we will|sounds great|perfect)\b/i,
         proposalIndicators: [
-            /\bsuggest\b/i,
-            /\brecommend\b/i,
-            /\bhere's what\b/i,
-            /\bwhat I'd\b/i,
-            /\bhere's how\b/i,
-            /\bproposal\b/i,
-            /\bsolution\b/i
+            /\b(?:i|we)\s+(?:suggest|recommend)\b/i,
+            /\bmy recommendation\b/i,
+            /\bmy proposal\b/i,
+            /\bhere's what i(?:'d| would) suggest\b/i,
+            /\bhere's what i(?:'d| would) recommend\b/i,
+            /\bhere's a proposal\b/i
         ]
     }
 
@@ -286,8 +285,12 @@ export class ComplianceEngine {
             }
         }
 
-        // Check for premature pitching based on completion score
-        if (context?.completionScore !== undefined && context.completionScore < 0.6) {
+        // Check for premature pitching based on completion score + state
+        if (
+            context?.completionScore !== undefined &&
+            context.completionScore < 0.6 &&
+            context.state !== ConversationState.INTENT_RESOLUTION
+        ) {
             if (this.violationPatterns.proposalIndicators.some(p => p.test(response))) {
                 violations.push({
                     type: 'premature_pitch',

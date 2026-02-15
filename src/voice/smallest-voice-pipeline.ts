@@ -110,10 +110,16 @@ export class SmallestVoicePipeline extends EventEmitter {
     // Enforce Waves TTS concurrency (1 active request across all sessions).
     const release = await SmallestVoicePipeline.ttsGate.acquire();
 
-    const ws = new WebSocket(
-      'wss://waves-api.smallest.ai/api/v1/lightning-v3.1/get_speech/stream?timeout=60',
-      { headers: { Authorization: `Bearer ${this.getApiKey()}` } }
-    );
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(
+        'wss://waves-api.smallest.ai/api/v1/lightning-v3.1/get_speech/stream?timeout=60',
+        { headers: { Authorization: `Bearer ${this.getApiKey()}` } }
+      );
+    } catch (err) {
+      release();
+      throw err;
+    }
 
     session.ttsWs = ws;
 
@@ -132,6 +138,14 @@ export class SmallestVoicePipeline extends EventEmitter {
           release();
           controller.error(err);
         };
+
+        ws.on('error', (err) => {
+          errorOnce(err);
+        });
+
+        ws.on('close', () => {
+          closeOnce();
+        });
 
         ws.on('open', () => {
           ws.send(
@@ -168,15 +182,14 @@ export class SmallestVoicePipeline extends EventEmitter {
             ws.close();
           }
         });
-
-        ws.on('error', (err) => {
-          errorOnce(err);
-        });
-
-        ws.on('close', () => {
-          closeOnce();
-        });
       },
+      cancel: () => {
+        try {
+          ws.close();
+        } catch {
+          // Ignore close errors
+        }
+      }
     });
   }
 

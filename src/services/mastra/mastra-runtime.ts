@@ -89,6 +89,10 @@ export class MastraConversationRuntime {
     const memory = session.memory
     const isUser = speaker !== 'agent'
 
+    if (!isUser) {
+      return { response: '' }
+    }
+
     memory.addMessage({
       role: isUser ? 'user' : 'assistant',
       content: text,
