@@ -51,7 +51,7 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       OPTIONAL MATCH (c)-[:HAS_CONSTRAINT]->(con:Constraint)
       OPTIONAL MATCH (c)-[:NEEDS_DISCOVERY]->(d:DiscoveryGap)
       OPTIONAL MATCH (c)-[:HAS_LEVER]->(l:StrategicLever)
-      RETURN c, 
+      RETURN c,
              collect(DISTINCT m) as metrics,
              collect(DISTINCT p) as problems,
              collect(DISTINCT con) as constraints,
@@ -72,7 +72,9 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
 
     for (const row of results) {
       const clientNode = row.c
-      const clientId = clientNode.id || 'unknown'
+      // Neo4j Node properties are nested under .properties
+      const props = clientNode.properties || clientNode
+      const clientId = props.id || clientNode.id || 'unknown'
 
       // Add contact_id entry
       entries.push({
@@ -83,59 +85,59 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       })
 
       // Add client properties
-      if (clientNode.first_name) {
+      if (props.first_name) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'first_name',
-          fieldValue: clientNode.first_name,
+          fieldValue: props.first_name,
           dataSource: 'neo4j',
         })
       }
-      if (clientNode.last_name) {
+      if (props.last_name) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'last_name',
-          fieldValue: clientNode.last_name,
+          fieldValue: props.last_name,
           dataSource: 'neo4j',
         })
       }
-      if (clientNode.business_name) {
+      if (props.business_name) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'business_name',
-          fieldValue: clientNode.business_name,
+          fieldValue: props.business_name,
           dataSource: 'neo4j',
         })
       }
-      if (clientNode.industry) {
+      if (props.industry) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'industry',
-          fieldValue: clientNode.industry,
+          fieldValue: props.industry,
           dataSource: 'neo4j',
         })
       }
-      if (clientNode.years_in_business) {
+      if (props.years_in_business) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'years_in_business',
-          fieldValue: String(clientNode.years_in_business),
+          fieldValue: String(props.years_in_business),
           dataSource: 'neo4j',
         })
       }
-      if (clientNode.location_current) {
+      if (props.location_current) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'location_current',
-          fieldValue: clientNode.location_current,
+          fieldValue: props.location_current,
           dataSource: 'neo4j',
         })
       }
-      if (clientNode.location_previous) {
+      if (props.location_previous) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'location_previous',
-          fieldValue: clientNode.location_previous,
+          fieldValue: props.location_previous,
           dataSource: 'neo4j',
         })
       }
@@ -143,25 +145,26 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       // Add metrics
       for (const metric of row.metrics) {
         if (!metric) continue
+        const metricProps = metric.properties || metric
         entries.push({
           recordType: 'METRIC',
           fieldName: 'metric_name',
-          fieldValue: metric.name || 'Unknown Metric',
+          fieldValue: metricProps.name || 'Unknown Metric',
           dataSource: 'neo4j',
         })
-        if (metric.value) {
+        if (metricProps.value) {
           entries.push({
             recordType: 'METRIC',
             fieldName: 'metric_value',
-            fieldValue: String(metric.value),
+            fieldValue: String(metricProps.value),
             dataSource: 'neo4j',
           })
         }
-        if (metric.category) {
+        if (metricProps.category) {
           entries.push({
             recordType: 'METRIC',
             fieldName: 'metric_category',
-            fieldValue: metric.category,
+            fieldValue: metricProps.category,
             dataSource: 'neo4j',
           })
         }
@@ -170,17 +173,18 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       // Add problems
       for (const problem of row.problems) {
         if (!problem) continue
+        const problemProps = problem.properties || problem
         entries.push({
           recordType: 'PROBLEM',
           fieldName: 'problem_description',
-          fieldValue: problem.description || problem.name || 'Unknown Problem',
+          fieldValue: problemProps.description || problemProps.name || 'Unknown Problem',
           dataSource: 'neo4j',
         })
-        if (problem.type) {
+        if (problemProps.type) {
           entries.push({
             recordType: 'PROBLEM',
             fieldName: 'problem_type',
-            fieldValue: problem.type,
+            fieldValue: problemProps.type,
             dataSource: 'neo4j',
           })
         }
@@ -189,17 +193,18 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       // Add constraints
       for (const constraint of row.constraints) {
         if (!constraint) continue
+        const constraintProps = constraint.properties || constraint
         entries.push({
           recordType: 'CONSTRAINT',
           fieldName: 'constraint_type',
-          fieldValue: constraint.type || 'UNKNOWN',
+          fieldValue: constraintProps.type || 'UNKNOWN',
           dataSource: 'neo4j',
         })
-        if (constraint.detail || constraint.description) {
+        if (constraintProps.detail || constraintProps.description) {
           entries.push({
             recordType: 'CONSTRAINT',
             fieldName: 'constraint_detail',
-            fieldValue: constraint.detail || constraint.description,
+            fieldValue: constraintProps.detail || constraintProps.description,
             dataSource: 'neo4j',
           })
         }
@@ -208,17 +213,18 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       // Add discovery gaps
       for (const gap of row.discoveryGaps) {
         if (!gap) continue
+        const gapProps = gap.properties || gap
         entries.push({
           recordType: 'DISCOVERY_NEEDED',
           fieldName: 'discovery_gap',
-          fieldValue: gap.question || gap.topic || gap.description || 'Unknown Gap',
+          fieldValue: gapProps.question || gapProps.topic || gapProps.description || 'Unknown Gap',
           dataSource: 'neo4j',
         })
-        if (gap.priority) {
+        if (gapProps.priority) {
           entries.push({
             recordType: 'DISCOVERY_NEEDED',
             fieldName: 'discovery_priority',
-            fieldValue: gap.priority,
+            fieldValue: gapProps.priority,
             dataSource: 'neo4j',
           })
         }
@@ -227,17 +233,18 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       // Add strategic levers
       for (const lever of row.strategicLevers) {
         if (!lever) continue
+        const leverProps = lever.properties || lever
         entries.push({
           recordType: 'STRATEGIC_LEVER',
           fieldName: 'lever_description',
-          fieldValue: lever.description || lever.name || 'Unknown Lever',
+          fieldValue: leverProps.description || leverProps.name || 'Unknown Lever',
           dataSource: 'neo4j',
         })
-        if (lever.type) {
+        if (leverProps.type) {
           entries.push({
             recordType: 'STRATEGIC_LEVER',
             fieldName: 'lever_type',
-            fieldValue: lever.type,
+            fieldValue: leverProps.type,
             dataSource: 'neo4j',
           })
         }
@@ -249,6 +256,9 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
     console.error('Failed to load CRM entries from Neo4j:', error)
     // Return empty array on error to allow fallback behavior
     return []
+  } finally {
+    // CRITICAL: Always disconnect to prevent connection leaks
+    await client.disconnect()
   }
 }
 
