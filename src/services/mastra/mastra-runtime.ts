@@ -46,6 +46,34 @@ const DEFAULT_LLM_CONCURRENCY = 2
 const DEFAULT_MAX_QUEUE_DEPTH = 100
 const DEFAULT_MAX_SESSION_QUEUE_DEPTH = 20
 
+class ConcurrencyGate {
+  private active = 0
+  private queue: Array<() => void> = []
+
+  constructor(private limit: number) { }
+
+  async acquire(): Promise<() => void> {
+    if (this.active < this.limit) {
+      this.active += 1
+      return () => this.release()
+    }
+
+    return new Promise((resolve) => {
+      this.queue.push(() => {
+        this.active += 1
+        resolve(() => this.release())
+      })
+    })
+  }
+
+  private release(): void {
+    this.active = Math.max(0, this.active - 1)
+    const next = this.queue.shift()
+    if (next) next()
+  }
+}
+
+
 export class MastraConversationRuntime {
   private sessions = new Map<string, SessionRuntime>()
   private sessionQueues = new Map<string, Promise<void>>()
@@ -279,7 +307,7 @@ export class MastraConversationRuntime {
     }
 
     const next = previous.then(run, run)
-    this.sessionQueues.set(sessionId, next.then(() => {}, () => {}))
+    this.sessionQueues.set(sessionId, next.then(() => { }, () => { }))
     return next
   }
 
@@ -313,31 +341,4 @@ export function getMastraConversationRuntime(): MastraConversationRuntime {
     globalForMastraConversation.mastraConversationRuntime = new MastraConversationRuntime()
   }
   return globalForMastraConversation.mastraConversationRuntime
-}
-
-class ConcurrencyGate {
-  private active = 0
-  private queue: Array<() => void> = []
-
-  constructor(private limit: number) {}
-
-  async acquire(): Promise<() => void> {
-    if (this.active < this.limit) {
-      this.active += 1
-      return () => this.release()
-    }
-
-    return new Promise((resolve) => {
-      this.queue.push(() => {
-        this.active += 1
-        resolve(() => this.release())
-      })
-    })
-  }
-
-  private release(): void {
-    this.active = Math.max(0, this.active - 1)
-    const next = this.queue.shift()
-    if (next) next()
-  }
 }
