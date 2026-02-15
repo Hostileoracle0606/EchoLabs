@@ -418,6 +418,7 @@ export class ComplianceEngine {
             let phrase = line.replace(/^-+\s*/, '').trim()
             phrase = phrase.replace(/\s*\(.*\)\s*$/, '').trim()
             phrase = phrase.replace(/^["'`]+/, '').replace(/["'`]+$/, '').trim()
+            phrase = phrase.replace(/[*_`]/g, '').trim()
             phrase = phrase.replace(/\.{3,}$/, '').trim()
             phrase = phrase.replace(/[.!]$/, '').trim()
             if (phrase.length > 0) phrases.push(phrase)

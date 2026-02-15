@@ -37,13 +37,31 @@ export interface MastraConversationOutput {
 type SessionRuntime = {
   memory: ThreadMemory
   controller: WorkflowController
+  lastActive: number
 }
+
+const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000
+const DEFAULT_SESSION_CLEANUP_MS = 5 * 60 * 1000
+const DEFAULT_LLM_CONCURRENCY = 2
 
 export class MastraConversationRuntime {
   private sessions = new Map<string, SessionRuntime>()
+  private sessionQueues = new Map<string, Promise<void>>()
   private promptBuilder = new PromptBuilder()
   private promptInit: Promise<void> | null = null
   private compliance = getComplianceEngine()
+  private cleanupInterval: NodeJS.Timeout | null = null
+  private sessionTtlMs =
+    Number.parseInt(process.env.MASTRA_SESSION_TTL_MS ?? '', 10) || DEFAULT_SESSION_TTL_MS
+  private cleanupIntervalMs =
+    Number.parseInt(process.env.MASTRA_SESSION_CLEANUP_MS ?? '', 10) || DEFAULT_SESSION_CLEANUP_MS
+  private static llmGate = new ConcurrencyGate(
+    Number.parseInt(process.env.MASTRA_LLM_CONCURRENCY ?? '', 10) || DEFAULT_LLM_CONCURRENCY
+  )
+
+  constructor() {
+    this.startCleanupLoop()
+  }
 
   private async ensurePromptBuilder(): Promise<void> {
     if (!this.promptInit) {
@@ -58,7 +76,7 @@ export class MastraConversationRuntime {
 
     const memory = new ThreadMemory(sessionId)
     const controller = new WorkflowController(memory, this.createWorkflowMap())
-    const runtime = { memory, controller }
+    const runtime = { memory, controller, lastActive: Date.now() }
     this.sessions.set(sessionId, runtime)
     return runtime
   }
@@ -76,6 +94,19 @@ export class MastraConversationRuntime {
   }
 
   async processTranscript(input: MastraConversationInput): Promise<MastraConversationOutput> {
+    if (input.speaker === 'agent') {
+      return { response: '' }
+    }
+
+    return this.enqueue(input.sessionId, async () => this.processTranscriptInternal(input))
+  }
+
+  async closeSession(sessionId: string): Promise<void> {
+    this.sessions.delete(sessionId)
+    this.sessionQueues.delete(sessionId)
+  }
+
+  private async processTranscriptInternal(input: MastraConversationInput): Promise<MastraConversationOutput> {
     const {
       sessionId,
       callId: rawCallId,
@@ -89,9 +120,7 @@ export class MastraConversationRuntime {
     const memory = session.memory
     const isUser = speaker !== 'agent'
 
-    if (!isUser) {
-      return { response: '' }
-    }
+    this.touchSession(sessionId)
 
     memory.addMessage({
       role: isUser ? 'user' : 'assistant',
@@ -134,7 +163,7 @@ export class MastraConversationRuntime {
 
     let responseText = workflowResponse || 'Can you tell me a bit more about that?'
     try {
-      responseText = await geminiGenerate({
+      responseText = await this.generateWithGate({
         systemPrompt: 'You are a sales assistant. Follow the prompt exactly.',
         userPrompt: prompt
       })
@@ -153,7 +182,7 @@ export class MastraConversationRuntime {
         const retryPrompt = `${prompt}\n\n# COMPLIANCE VIOLATIONS\n${violationNotes}\nRegenerate a compliant response.`
 
         try {
-          responseText = await geminiGenerate({
+          responseText = await this.generateWithGate({
             systemPrompt: 'You are a sales assistant. Follow the prompt exactly.',
             userPrompt: retryPrompt
           })
@@ -179,6 +208,15 @@ export class MastraConversationRuntime {
     return { response: responseText }
   }
 
+  private async generateWithGate(params: { systemPrompt: string; userPrompt: string }): Promise<string> {
+    const release = await MastraConversationRuntime.llmGate.acquire()
+    try {
+      return await geminiGenerate(params)
+    } finally {
+      release()
+    }
+  }
+
   private emitComplianceWarnings(
     sessionId: string,
     callId: string,
@@ -194,6 +232,35 @@ export class MastraConversationRuntime {
     }
     broadcast('sales:compliance', sessionId, { ...envelope, warnings })
   }
+
+  private enqueue<T>(sessionId: string, task: () => Promise<T>): Promise<T> {
+    const previous = this.sessionQueues.get(sessionId) ?? Promise.resolve()
+    const next = previous.then(task, task)
+    this.sessionQueues.set(sessionId, next.then(() => {}, () => {}))
+    return next
+  }
+
+  private touchSession(sessionId: string): void {
+    const session = this.sessions.get(sessionId)
+    if (session) {
+      session.lastActive = Date.now()
+    }
+  }
+
+  private startCleanupLoop(): void {
+    if (this.cleanupInterval) return
+    if (this.sessionTtlMs <= 0) return
+
+    this.cleanupInterval = setInterval(() => {
+      const now = Date.now()
+      for (const [sessionId, session] of this.sessions.entries()) {
+        if (now - session.lastActive > this.sessionTtlMs) {
+          this.sessions.delete(sessionId)
+          this.sessionQueues.delete(sessionId)
+        }
+      }
+    }, this.cleanupIntervalMs)
+  }
 }
 
 const globalForMastraConversation = global as unknown as { mastraConversationRuntime?: MastraConversationRuntime }
@@ -203,4 +270,31 @@ export function getMastraConversationRuntime(): MastraConversationRuntime {
     globalForMastraConversation.mastraConversationRuntime = new MastraConversationRuntime()
   }
   return globalForMastraConversation.mastraConversationRuntime
+}
+
+class ConcurrencyGate {
+  private active = 0
+  private queue: Array<() => void> = []
+
+  constructor(private limit: number) {}
+
+  async acquire(): Promise<() => void> {
+    if (this.active < this.limit) {
+      this.active += 1
+      return () => this.release()
+    }
+
+    return new Promise((resolve) => {
+      this.queue.push(() => {
+        this.active += 1
+        resolve(() => this.release())
+      })
+    })
+  }
+
+  private release(): void {
+    this.active = Math.max(0, this.active - 1)
+    const next = this.queue.shift()
+    if (next) next()
+  }
 }

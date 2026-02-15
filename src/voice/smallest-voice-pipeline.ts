@@ -123,31 +123,68 @@ export class SmallestVoicePipeline extends EventEmitter {
 
     session.ttsWs = ws;
 
+    let done = false;
+    let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null;
+    const finalize = (err?: unknown) => {
+      if (done) return;
+      done = true;
+      release();
+      if (err && controllerRef) {
+        controllerRef.error(err);
+        return;
+      }
+      controllerRef?.close();
+    };
+
+    const connectionTimeoutMs = 15000;
+    const requestTimeoutMs = 65000;
+    let connectionTimer: NodeJS.Timeout | null = setTimeout(() => {
+      finalize(new Error('TTS connection timeout'));
+      try {
+        ws.close();
+      } catch {
+        // ignore
+      }
+    }, connectionTimeoutMs);
+    let requestTimer: NodeJS.Timeout | null = setTimeout(() => {
+      finalize(new Error('TTS request timeout'));
+      try {
+        ws.close();
+      } catch {
+        // ignore
+      }
+    }, requestTimeoutMs);
+
+    const clearTimers = () => {
+      if (connectionTimer) {
+        clearTimeout(connectionTimer);
+        connectionTimer = null;
+      }
+      if (requestTimer) {
+        clearTimeout(requestTimer);
+        requestTimer = null;
+      }
+    };
+
     return new ReadableStream<Uint8Array>({
       start: (controller) => {
-        let done = false;
-        const closeOnce = () => {
-          if (done) return;
-          done = true;
-          release();
-          controller.close();
-        };
-        const errorOnce = (err: unknown) => {
-          if (done) return;
-          done = true;
-          release();
-          controller.error(err);
-        };
+        controllerRef = controller;
 
         ws.on('error', (err) => {
-          errorOnce(err);
+          clearTimers();
+          finalize(err);
         });
 
         ws.on('close', () => {
-          closeOnce();
+          clearTimers();
+          finalize();
         });
 
         ws.on('open', () => {
+          if (connectionTimer) {
+            clearTimeout(connectionTimer);
+            connectionTimer = null;
+          }
           ws.send(
             JSON.stringify({
               voice_id: session.cfg.voiceId,
@@ -178,7 +215,8 @@ export class SmallestVoicePipeline extends EventEmitter {
           }
 
           if (status === 'complete' || msg.done) {
-            closeOnce();
+            clearTimers();
+            finalize();
             ws.close();
           }
         });
@@ -189,6 +227,8 @@ export class SmallestVoicePipeline extends EventEmitter {
         } catch {
           // Ignore close errors
         }
+        clearTimers();
+        finalize();
       }
     });
   }
