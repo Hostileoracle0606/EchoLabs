@@ -42,7 +42,8 @@ export function useMomentumWs() {
                   msg.payload.text,
                   msg.payload.isFinal,
                   msg.payload.speaker,
-                  msg.payload.timestamp
+                  msg.payload.timestamp,
+                  msg.payload.speakerId
                 );
               } else {
                 store.setInterimText(msg.payload.text);

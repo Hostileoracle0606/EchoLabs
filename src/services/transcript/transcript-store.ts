@@ -38,7 +38,8 @@ export class TranscriptStore {
       confidence: data.confidence,
     };
     session.chunks.push(chunk);
-    // TODO: Persist transcript chunk to PostgreSQL.
+    // TODO: Voice + call ingestion is partially wired; persist chunks to PostgreSQL
+    // and add cleanup/formatting so transcripts are reliably viewable.
     return chunk;
   }
 

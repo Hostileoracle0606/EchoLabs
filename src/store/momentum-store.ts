@@ -18,6 +18,7 @@ interface TranscriptChunkDisplay {
   text: string;
   isFinal: boolean;
   speaker: TranscriptSpeaker;
+  speakerId?: number;
   timestamp: number;
 }
 
@@ -53,7 +54,13 @@ interface MomentumState {
   setSessionId: (id: string) => void;
   setCallId: (id: string) => void;
   setRecording: (recording: boolean) => void;
-  addTranscriptChunk: (text: string, isFinal: boolean, speaker?: TranscriptSpeaker, timestamp?: number) => void;
+  addTranscriptChunk: (
+    text: string,
+    isFinal: boolean,
+    speaker?: TranscriptSpeaker,
+    timestamp?: number,
+    speakerId?: number
+  ) => void;
   setInterimText: (text: string) => void;
   addChart: (chart: ChartPayload) => void;
   addReferences: (refs: ReferencePayload) => void;
@@ -95,7 +102,7 @@ export const useMomentumStore = create<MomentumState>()(
         state.isRecording = recording;
       }),
 
-    addTranscriptChunk: (text, isFinal, speaker = 'customer', timestamp = Date.now()) =>
+    addTranscriptChunk: (text, isFinal, speaker = 'customer', timestamp = Date.now(), speakerId) =>
       set((state) => {
         if (isFinal) {
           state.transcriptChunks.push({
@@ -103,6 +110,7 @@ export const useMomentumStore = create<MomentumState>()(
             text,
             isFinal: true,
             speaker,
+            speakerId,
             timestamp,
           });
           state.interimText = '';

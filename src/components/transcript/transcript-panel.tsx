@@ -8,6 +8,7 @@ interface TranscriptChunkDisplay {
   text: string;
   isFinal: boolean;
   speaker: 'customer' | 'agent' | 'system';
+  speakerId?: number;
   timestamp: number;
 }
 
@@ -52,7 +53,7 @@ export function TranscriptPanel({ chunks, interimText }: TranscriptPanelProps) {
               className="flex flex-col"
             >
               <span className="text-[10px] uppercase tracking-wide text-[var(--foreground-subtle)]">
-                {chunk.speaker}
+                {typeof chunk.speakerId === 'number' ? `spk-${chunk.speakerId}` : chunk.speaker}
               </span>
               <span className="text-[var(--foreground)]">{chunk.text}</span>
             </motion.div>

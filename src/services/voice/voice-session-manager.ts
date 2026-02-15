@@ -1,6 +1,5 @@
 import { SmallestVoicePipeline } from '@/voice/smallest-voice-pipeline';
 import { broadcast } from '@/websocket/ws-server';
-import { processSalesTranscript } from '@/services/sales/sales-orchestrator';
 import type { CallSessionMetadata } from '@/types/sales';
 
 interface VoiceSessionState extends CallSessionMetadata {
@@ -22,23 +21,37 @@ export class VoiceSessionManager {
         callId: session.callId,
         sessionId: event.sessionId,
         speaker: event.speaker,
+        speakerId: event.speakerId,
         text: event.text,
         isFinal: false,
         timestamp: event.timestamp,
         confidence: event.confidence,
+        words: event.words,
+        utterances: event.utterances,
+        fullTranscript: event.fullTranscript,
+        language: event.language,
+        languages: event.languages,
       });
     });
 
     this.pipeline.on('final_transcript', async (event) => {
       const session = this.sessions.get(event.sessionId);
       if (!session) return;
-      await processSalesTranscript({
-        sessionId: event.sessionId,
+      broadcast('transcript:update', event.sessionId, {
+        schemaVersion: 2,
         callId: session.callId,
-        text: event.text,
+        sessionId: event.sessionId,
         speaker: event.speaker,
+        speakerId: event.speakerId,
+        text: event.text,
+        isFinal: true,
         timestamp: event.timestamp,
-        emitTranscript: true,
+        confidence: event.confidence,
+        words: event.words,
+        utterances: event.utterances,
+        fullTranscript: event.fullTranscript,
+        language: event.language,
+        languages: event.languages,
       });
     });
 
@@ -53,7 +66,11 @@ export class VoiceSessionManager {
     });
   }
 
-  async startSession(metadata: Omit<CallSessionMetadata, 'schemaVersion' | 'startedAt'>) {
+  async startSession(
+    metadata: Omit<CallSessionMetadata, 'schemaVersion' | 'startedAt'> & {
+      endpointingDelayMs?: number;
+    }
+  ) {
     const state: VoiceSessionState = {
       schemaVersion: 2,
       callId: metadata.callId,
@@ -64,7 +81,9 @@ export class VoiceSessionManager {
       isStreaming: true,
     };
     this.sessions.set(metadata.sessionId, state);
-    await this.pipeline.startConversation(metadata.sessionId, metadata.phoneNumber);
+    await this.pipeline.startConversation(metadata.sessionId, metadata.phoneNumber, {
+      endpointingDelayMs: metadata.endpointingDelayMs,
+    });
 
     broadcast('voice:status', metadata.sessionId, {
       schemaVersion: 2,

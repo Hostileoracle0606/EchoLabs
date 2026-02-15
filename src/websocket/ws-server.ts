@@ -62,11 +62,17 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
         const client = clients.get(ws);
         const sessionId = msg.sessionId || client?.sessionId;
         if (sessionId && typeof msg.payload === 'object') {
+          const endpointingDelayMsRaw = (msg.payload as any).endpointingDelayMs;
+          const endpointingDelayMs =
+            typeof endpointingDelayMsRaw === 'number' && endpointingDelayMsRaw > 0
+              ? endpointingDelayMsRaw
+              : undefined;
           await getVoiceSessionManager().startSession({
             sessionId,
             callId: (msg.payload as any).callId ?? `call-${sessionId}`,
             customerId: (msg.payload as any).customerId,
             phoneNumber: (msg.payload as any).phoneNumber,
+            endpointingDelayMs,
           });
         }
       }
