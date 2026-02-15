@@ -1,4 +1,5 @@
 import neo4j, { Driver, Session } from 'neo4j-driver'
+import logger from '@/lib/logger'
 
 export interface Neo4jConfig {
     uri?: string
@@ -16,6 +17,7 @@ export class Neo4jClient {
 
     async connect(): Promise<void> {
         if (this.driver) {
+            logger.debug('Neo4j', 'Already connected, skipping')
             return
         }
 
@@ -26,16 +28,20 @@ export class Neo4jClient {
             )
         }
 
+        logger.flow('Neo4j', 'Connecting to database', { uri })
         this.driver = neo4j.driver(uri, neo4j.auth.basic(username, password))
 
         // Verify connectivity
         await this.driver.verifyConnectivity()
+        logger.info('Neo4j', 'Connected successfully')
     }
 
     async disconnect(): Promise<void> {
         if (this.driver) {
+            logger.flow('Neo4j', 'Disconnecting from database')
             await this.driver.close()
             this.driver = null
+            logger.info('Neo4j', 'Disconnected')
         }
     }
 
@@ -47,9 +53,15 @@ export class Neo4jClient {
     }
 
     async query<T = any>(cypher: string, params?: Record<string, any>): Promise<T[]> {
+        logger.flow('Neo4j', 'Executing query', {
+            cypher: cypher.substring(0, 100),
+            params
+        })
+
         const session = this.getSession()
         try {
             const result = await session.run(cypher, params)
+            logger.debug('Neo4j', 'Query complete', { recordCount: result.records.length })
             return result.records.map((record) => record.toObject() as T)
         } finally {
             await session.close()
