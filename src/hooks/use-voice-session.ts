@@ -7,7 +7,6 @@ interface UseVoiceSessionOptions {
   callId: string;
   customerId?: string;
   phoneNumber?: string;
-  endpointingDelayMs?: number;
   onError?: (error: string) => void;
 }
 
@@ -65,7 +64,6 @@ export function useVoiceSession({
   callId,
   customerId,
   phoneNumber,
-  endpointingDelayMs,
   onError,
 }: UseVoiceSessionOptions): UseVoiceSessionReturn {
   const [isStreaming, setIsStreaming] = useState(false);
@@ -160,7 +158,6 @@ export function useVoiceSession({
               callId,
               customerId,
               phoneNumber,
-              endpointingDelayMs,
             },
           })
         );
@@ -275,7 +272,7 @@ registerProcessor('pcm-processor', PcmProcessor);
       stop();
       throw err;
     }
-  }, [callId, customerId, phoneNumber, endpointingDelayMs, sessionId, onError, stop]);
+  }, [callId, customerId, phoneNumber, sessionId, onError, stop]);
 
   return { isStreaming, start, stop };
 }

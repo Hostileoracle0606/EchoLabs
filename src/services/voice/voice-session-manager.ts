@@ -1,5 +1,6 @@
 import { SmallestVoicePipeline } from '@/voice/smallest-voice-pipeline';
 import { broadcast } from '@/websocket/ws-server';
+import { processSalesTranscript } from '@/services/sales/sales-orchestrator';
 import type { CallSessionMetadata } from '@/types/sales';
 
 interface VoiceSessionState extends CallSessionMetadata {
@@ -53,6 +54,16 @@ export class VoiceSessionManager {
         language: event.language,
         languages: event.languages,
       });
+      void processSalesTranscript({
+        sessionId: event.sessionId,
+        callId: session.callId,
+        text: event.text,
+        speaker: event.speaker,
+        timestamp: event.timestamp,
+        emitTranscript: false,
+      }).catch((err) => {
+        console.error('[VoiceSessionManager] Failed to process sales transcript:', err);
+      });
     });
 
     this.pipeline.on('error', (event) => {
@@ -67,9 +78,7 @@ export class VoiceSessionManager {
   }
 
   async startSession(
-    metadata: Omit<CallSessionMetadata, 'schemaVersion' | 'startedAt'> & {
-      endpointingDelayMs?: number;
-    }
+    metadata: Omit<CallSessionMetadata, 'schemaVersion' | 'startedAt'>
   ) {
     const state: VoiceSessionState = {
       schemaVersion: 2,
@@ -81,9 +90,7 @@ export class VoiceSessionManager {
       isStreaming: true,
     };
     this.sessions.set(metadata.sessionId, state);
-    await this.pipeline.startConversation(metadata.sessionId, metadata.phoneNumber, {
-      endpointingDelayMs: metadata.endpointingDelayMs,
-    });
+    await this.pipeline.startConversation(metadata.sessionId, metadata.phoneNumber);
 
     broadcast('voice:status', metadata.sessionId, {
       schemaVersion: 2,

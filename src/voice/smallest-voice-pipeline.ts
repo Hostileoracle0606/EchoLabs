@@ -13,7 +13,6 @@ export interface VoiceSessionConfig {
   voiceId?: string;
   sttModel?: string;
   language?: string;
-  endpointingDelayMs?: number;
 }
 
 export interface VoiceSynthesisOptions {
@@ -71,7 +70,6 @@ export class SmallestVoicePipeline extends EventEmitter {
       voiceId: options.voiceId ?? 'professional-sales-neutral',
       sttModel: options.sttModel ?? 'lightning',
       language: options.language ?? 'en',
-      endpointingDelayMs: options.endpointingDelayMs ?? 1000,
     };
 
     const runtime: RuntimeSession = {
@@ -222,7 +220,6 @@ export class SmallestVoicePipeline extends EventEmitter {
 
     ws.on('message', (data) => {
       const raw = data.toString();
-      console.log('[Pulse STT] raw:', raw);
       let msg: any;
       try {
         msg = JSON.parse(raw);
