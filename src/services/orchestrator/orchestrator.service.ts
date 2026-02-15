@@ -19,11 +19,18 @@ export async function processTranscript(
   try {
     // 1. Classify intent
     logger.flow('Orchestrator', 'Classifying intent');
-    const classificationResult = await classifyIntents(request.text);
-    logger.info('Orchestrator', 'Intent classification complete', {
-      intentCount: classificationResult.intents.length,
-      types: classificationResult.intents.map((i: ClassifiedIntent) => i.type)
-    });
+    let classificationResult;
+    try {
+      classificationResult = await classifyIntents(request.text);
+      logger.info('Orchestrator', 'Intent classification complete', {
+        intentCount: classificationResult.intents.length,
+        types: classificationResult.intents.map((i: ClassifiedIntent) => i.type)
+      });
+    } catch (classifyError) {
+      logger.error('Orchestrator', 'Intent classification failed', classifyError);
+      // Use fallback empty classification to allow orchestrator to continue
+      classificationResult = { intents: [], confidence: 0 };
+    }
 
     // 2. Drive Mastra LLM response generation (brain) using GEMINI_API_KEY.
     // This runs alongside the heuristic sales signals until Mastra fully replaces Sales Orchestrator.

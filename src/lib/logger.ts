@@ -22,7 +22,17 @@ class Logger {
     private config: LogConfig
 
     constructor() {
-        const logLevel = (process.env.LOG_LEVEL?.toLowerCase() as LogLevel) || 'info'
+        const envLevel = process.env.LOG_LEVEL?.toLowerCase()
+        const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error']
+
+        // Validate LOG_LEVEL and fallback to 'info' if invalid
+        let logLevel: LogLevel = 'info'
+        if (envLevel && validLevels.includes(envLevel as LogLevel)) {
+            logLevel = envLevel as LogLevel
+        } else if (envLevel) {
+            console.warn(`[LOGGER] Invalid LOG_LEVEL="${envLevel}". Using default "info". Valid levels: ${validLevels.join(', ')}`)
+        }
+
         this.config = {
             level: logLevel,
             enableTimestamps: process.env.LOG_TIMESTAMPS !== 'false',
