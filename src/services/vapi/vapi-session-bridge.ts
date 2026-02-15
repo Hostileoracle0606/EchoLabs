@@ -136,6 +136,7 @@ export class VapiSessionBridge {
         // Remove mappings
         this.callToSessionMap.delete(callId)
         this.sessionToCallMap.delete(sessionId)
+
     }
 
     /**

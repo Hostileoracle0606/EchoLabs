@@ -1,3 +1,5 @@
+import { generateClientMd } from '@/services/crm/client-md-generator';
+import { setClientMd, clearClientMdForCall, clearClientMdForSession } from '@/services/crm/client-md-store';
 import { SmallestVoicePipeline } from '@/voice/smallest-voice-pipeline';
 import { broadcast } from '@/websocket/ws-server';
 import { processSalesTranscript } from '@/services/sales/sales-orchestrator';
@@ -92,6 +94,21 @@ export class VoiceSessionManager {
     this.sessions.set(metadata.sessionId, state);
     await this.pipeline.startConversation(metadata.sessionId, metadata.phoneNumber);
 
+    void generateClientMd({
+      callId: metadata.callId,
+      contactId: metadata.customerId,
+    })
+      .then((clientMd) => {
+        setClientMd({
+          callId: metadata.callId,
+          sessionId: metadata.sessionId,
+          content: clientMd,
+        });
+      })
+      .catch((err) => {
+        console.error('[VoiceSessionManager] CLIENT.md generation failed:', err);
+      });
+
     broadcast('voice:status', metadata.sessionId, {
       schemaVersion: 2,
       callId: metadata.callId,
@@ -118,6 +135,9 @@ export class VoiceSessionManager {
       status: 'stopped',
     });
     this.sessions.delete(sessionId);
+
+    clearClientMdForCall(session.callId);
+    clearClientMdForSession(sessionId);
   }
 
   async interruptSession(sessionId: string) {
