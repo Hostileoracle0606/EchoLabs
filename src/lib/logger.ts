@@ -44,6 +44,31 @@ class Logger {
         return LOG_LEVELS[level] >= LOG_LEVELS[this.config.level]
     }
 
+    private safeStringify(obj: any): string {
+        try {
+            // Create a Set to track seen objects
+            const seen = new WeakSet()
+
+            return JSON.stringify(obj, (key, value) => {
+                // Handle non-object primitives
+                if (typeof value !== 'object' || value === null) {
+                    return value
+                }
+
+                // Detect circular references
+                if (seen.has(value)) {
+                    return '[Circular]'
+                }
+
+                seen.add(value)
+                return value
+            }, 2)
+        } catch (error) {
+            // Fallback if stringify still fails
+            return `[Unstringifiable: ${error instanceof Error ? error.message : 'unknown error'}]`
+        }
+    }
+
     private formatMessage(level: LogLevel, context: string, message: string, data?: any): string {
         const parts: string[] = []
 
@@ -56,7 +81,7 @@ class Logger {
         parts.push(message)
 
         if (data !== undefined) {
-            parts.push(typeof data === 'object' ? JSON.stringify(data, null, 2) : String(data))
+            parts.push(typeof data === 'object' ? this.safeStringify(data) : String(data))
         }
 
         return parts.join(' ')

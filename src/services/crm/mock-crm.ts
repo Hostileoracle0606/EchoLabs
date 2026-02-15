@@ -74,7 +74,12 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
       const clientNode = row.c
       // Neo4j Node properties are nested under .properties
       const props = clientNode.properties || clientNode
-      const clientId = props.id || clientNode.id || 'unknown'
+      const rawId = props.id || clientNode.id || 'unknown'
+
+      // Convert Neo4j Integer to string if needed
+      const clientId = typeof rawId === 'object' && 'toNumber' in rawId
+        ? String(rawId.toNumber())
+        : String(rawId)
 
       // Add contact_id entry
       entries.push({
@@ -117,7 +122,7 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
           dataSource: 'neo4j',
         })
       }
-      if (props.years_in_business) {
+      if (props.years_in_business != null) {
         entries.push({
           recordType: 'IDENTITY',
           fieldName: 'years_in_business',
@@ -152,7 +157,7 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
           fieldValue: metricProps.name || 'Unknown Metric',
           dataSource: 'neo4j',
         })
-        if (metricProps.value) {
+        if (metricProps.value != null) {
           entries.push({
             recordType: 'METRIC',
             fieldName: 'metric_value',
@@ -258,7 +263,12 @@ export async function loadMockCrmEntries(): Promise<MockCrmEntry[]> {
     return []
   } finally {
     // CRITICAL: Always disconnect to prevent connection leaks
-    await client.disconnect()
+    // Wrap in try-catch to prevent disconnect errors from masking original errors
+    try {
+      await client.disconnect()
+    } catch (disconnectError) {
+      console.error('Failed to disconnect Neo4j client:', disconnectError)
+    }
   }
 }
 
