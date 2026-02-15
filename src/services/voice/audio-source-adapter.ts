@@ -67,24 +67,26 @@ export class BrowserMicSource implements AudioSource {
 /**
  * VapiSource
  * Production mode - uses Vapi telephony
+ * 
+ * Design notes:
+ * - Unlike browser mic, Vapi audio is server-side webhook driven
+ * - Audio input comes via webhook events, not WebSocket chunks
+ * - Audio output is sent via Vapi's response mechanism
+ * - Session management handled by VapiSessionBridge
  */
 export class VapiSource implements AudioSource {
-  private vapiClient: any = null
   private sessionId: string = ''
   private audioCallback?: (chunk: AudioChunk) => void
   private disconnectCallback?: () => void
+  private callId?: string
 
-  async connect(): Promise<void> {
-    // Vapi SDK initialization
-    // For now, generate session ID
-    this.sessionId = `vapi-${Date.now()}`
+  async connect(callId?: string): Promise<void> {
+    // Vapi sessions are initiated by webhook, not by connect()
+    // Store call ID for reference
+    this.callId = callId
+    this.sessionId = `vapi-${callId || Date.now()}`
 
-    // In production, this would initialize Vapi:
-    // this.vapiClient = await createVapiConnection({
-    //   apiKey: process.env.VAPI_API_KEY,
-    //   onAudio: this.handleAudio.bind(this),
-    //   onTranscript: this.handleTranscript.bind(this)
-    // })
+    console.log('[VapiSource] Connected with session:', this.sessionId)
   }
 
   onAudioChunk(callback: (chunk: AudioChunk) => void): void {
@@ -96,8 +98,7 @@ export class VapiSource implements AudioSource {
   }
 
   async disconnect(): Promise<void> {
-    // Vapi cleanup
-    this.vapiClient?.disconnect?.()
+    console.log('[VapiSource] Disconnecting session:', this.sessionId)
     this.disconnectCallback?.()
   }
 
@@ -106,35 +107,62 @@ export class VapiSource implements AudioSource {
   }
 
   /**
-   * Handle audio from Vapi
-   * Called by Vapi SDK
+   * Handle incoming audio from Vapi webhook
+   * Called by VapiSessionBridge when audio events arrive
    */
-  private handleAudio(audio: Buffer): void {
+  handleAudioFromVapi(audio: Buffer, metadata?: {
+    sampleRate?: number
+    channels?: number
+  }): void {
     if (this.audioCallback && this.sessionId) {
       this.audioCallback({
         sessionId: this.sessionId,
         audio,
         timestamp: new Date(),
-        sampleRate: 8000, // Vapi default (telephony)
-        channels: 1
+        sampleRate: metadata?.sampleRate || 8000,
+        channels: metadata?.channels || 1
       })
     }
   }
 
   /**
-   * Handle transcript from Vapi
-   * Vapi provides real-time transcription
+   * Send TTS audio back to Vapi for playback
+   * Called by voice pipeline when response audio is ready
    */
-  private handleTranscript(transcript: string): void {
-    // In production, this would emit transcript events
-    // for voice-session-manager to consume
-    console.log('Vapi transcript:', transcript)
+  async sendAudioToVapi(audio: Buffer): Promise<void> {
+    if (!this.callId) {
+      console.warn('[VapiSource] Cannot send audio - no call ID')
+      return
+    }
+
+    console.log('[VapiSource] Sending audio to Vapi:', {
+      callId: this.callId,
+      audioSize: audio.length,
+    })
+
+    // TODO: Use Vapi SDK to stream audio back to caller
+    // This may require:
+    // 1. WebSocket connection to Vapi's media server
+    // 2. HTTP chunked streaming
+    // 3. Or returning audio in webhook response
+    // Check Vapi docs for the correct approach
+  }
+
+  /**
+   * Handle transcript from Vapi's built-in STT
+   * Allows bypassing Smallest.ai STT in production
+   */
+  handleTranscriptFromVapi(transcript: string): void {
+    console.log('[VapiSource] Received transcript from Vapi:', transcript)
+
+    // TODO: Forward to voice pipeline
+    // This bypasses Smallest.ai STT, using Vapi's built-in transcription instead
   }
 }
 
 /**
  * AudioSourceFactory
- * Creates appropriate audio source based on environment
+ * Creates the appropriate audio source based on environment
  */
 export class AudioSourceFactory {
   static create(mode: 'development' | 'production'): AudioSource {
