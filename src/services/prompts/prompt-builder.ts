@@ -1,4 +1,5 @@
 import { MarkdownLoader } from './markdown-loader'
+import { getClientMdBySessionId } from '@/services/crm/client-md-store'
 import { ThreadMemory, CheckboxState } from '@/services/memory/thread-memory'
 
 export interface PromptBuildParams {
@@ -47,7 +48,8 @@ export class PromptBuilder {
     const workflowTemplate = await this.loadWorkflowTemplate(workflow)
 
     // Load CLIENT.md if available
-    const clientMd = clientContext || await this.loadClientMd()
+    const storedClientMd = getClientMdBySessionId(memory.getSessionId())
+    const clientMd = clientContext || storedClientMd || await this.loadClientMd()
 
     // Get conversation history
     const conversationHistory = memory.getRecentContext(10)
