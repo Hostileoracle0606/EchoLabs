@@ -53,6 +53,8 @@ type RuntimeSession = {
 export class SmallestVoicePipeline extends EventEmitter {
   private config: SmallestVoiceConfig;
   private sessions = new Map<string, RuntimeSession>();
+  // Waves TTS concurrency limit: 1 active request across all connections.
+  private static ttsGate = new ConcurrencyGate(1);
 
   constructor(config: SmallestVoiceConfig = {}) {
     super();
@@ -105,8 +107,11 @@ export class SmallestVoicePipeline extends EventEmitter {
       this.emit('interrupted', { sessionId });
     }
 
+    // Enforce Waves TTS concurrency (1 active request across all sessions).
+    const release = await SmallestVoicePipeline.ttsGate.acquire();
+
     const ws = new WebSocket(
-      'wss://waves-api.smallest.ai/api/v1/lightning-v2/get_speech/stream?timeout=60',
+      'wss://waves-api.smallest.ai/api/v1/lightning-v3.1/get_speech/stream?timeout=60',
       { headers: { Authorization: `Bearer ${this.getApiKey()}` } }
     );
 
@@ -118,11 +123,13 @@ export class SmallestVoicePipeline extends EventEmitter {
         const closeOnce = () => {
           if (done) return;
           done = true;
+          release();
           controller.close();
         };
         const errorOnce = (err: unknown) => {
           if (done) return;
           done = true;
+          release();
           controller.error(err);
         };
 
@@ -131,7 +138,8 @@ export class SmallestVoicePipeline extends EventEmitter {
             JSON.stringify({
               voice_id: session.cfg.voiceId,
               text,
-              sample_rate: 24000,
+              // Lightning v3.1 is a 44 kHz model.
+              sample_rate: 44100,
               speed: 1,
             })
           );
@@ -145,11 +153,17 @@ export class SmallestVoicePipeline extends EventEmitter {
             return;
           }
 
-          if (msg.status === 'chunk') {
-            controller.enqueue(Buffer.from(msg.data.audio, 'base64'));
+          const status = msg.status || msg.event || msg.type;
+          const audioBase64 =
+            msg?.data?.audio || msg?.audio || msg?.chunk || msg?.payload?.audio;
+
+          if (status === 'chunk' && audioBase64) {
+            controller.enqueue(Buffer.from(audioBase64, 'base64'));
+          } else if (audioBase64 && (status === 'audio' || status === 'data')) {
+            controller.enqueue(Buffer.from(audioBase64, 'base64'));
           }
 
-          if (msg.status === 'complete' || msg.done) {
+          if (status === 'complete' || msg.done) {
             closeOnce();
             ws.close();
           }
@@ -292,5 +306,32 @@ export class SmallestVoicePipeline extends EventEmitter {
     }
 
     return undefined;
+  }
+}
+
+class ConcurrencyGate {
+  private active = 0;
+  private queue: Array<() => void> = [];
+
+  constructor(private limit: number) {}
+
+  async acquire(): Promise<() => void> {
+    if (this.active < this.limit) {
+      this.active += 1;
+      return () => this.release();
+    }
+
+    return new Promise((resolve) => {
+      this.queue.push(() => {
+        this.active += 1;
+        resolve(() => this.release());
+      });
+    });
+  }
+
+  private release(): void {
+    this.active = Math.max(0, this.active - 1);
+    const next = this.queue.shift();
+    if (next) next();
   }
 }
