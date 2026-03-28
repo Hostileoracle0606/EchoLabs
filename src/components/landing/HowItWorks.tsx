@@ -7,8 +7,8 @@ import { Upload, Mic, BarChart3, ArrowRight } from 'lucide-react';
 const steps = [
     {
         icon: Upload,
-        title: 'Upload Your Data',
-        description: 'Drop in Excel files, CSVs, PDFs, or slide decks. Momentum pre-parses and indexes everything.',
+        title: 'Connect Your Material',
+        description: 'Bring in notes, decks, docs, and source material so the HUD has something real to ground against.',
         color: '#3B82F6',
     },
     {

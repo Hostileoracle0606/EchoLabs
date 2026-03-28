@@ -1,6 +1,28 @@
-# Momentum
+# EchoLabs
 
-## Quickstart (Run & Test)
+EchoLabs is a real-time presentation HUD built with Next.js. It captures live speech, streams transcripts, grounds context and references against workspace-owned data, and renders structured artifacts like charts and summaries while you present.
+
+The current codebase includes:
+
+- Workspace-scoped auth and BYOK credential storage
+- Grounded context and references with provenance
+- Structured chart generation instead of model-generated Mermaid
+- SSE-first live event delivery with WebSocket compatibility
+- A custom Next.js server for `/ws` upgrades
+
+## Documentation
+
+- [Architecture Guide](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/docs/architecture.md)
+- [Deployment Guide](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/docs/deployment.md)
+
+## Requirements
+
+- Node.js 22+
+- npm 10+
+
+Node 22 is recommended because the workspace/auth store currently uses Node's built-in `node:sqlite` module.
+
+## Quick Start
 
 1. Install dependencies:
 
@@ -8,73 +30,88 @@
 npm install
 ```
 
-Node 18+ is recommended (required for global `fetch` in the simulation scripts).
+2. Copy the env template and fill in real values:
 
-2. Start the app with WebSocket support:
+```bash
+cp .env.example .env
+```
+
+3. Start the app with the custom server:
 
 ```bash
 npm run dev:ws
 ```
 
-3. Open the app:
+4. Open the app:
 
-```
+```text
 http://localhost:3000
 ```
 
-4. Optional: run the demo simulation (drives the orchestrator):
+5. Create a session at `/login`, then open `/app`.
+
+6. Add workspace credentials at `/app/settings`.
+
+## Environment Variables
+
+Required for the core app:
+
+- `APP_ENCRYPTION_KEY`: encrypts workspace provider secrets at rest
+- `GEMINI_API_KEY`: optional fallback Gemini key outside production
+- `DEEPGRAM_API_KEY`: optional fallback Deepgram key outside production
+- `DEEPGRAM_PROJECT_ID`: required for minting short-lived browser Deepgram tokens
+
+Useful optional settings:
+
+- `PORT`: server port, defaults to `3000`
+- `HOSTNAME`: server hostname, defaults to `localhost`
+- `ECHOLENS_DATA_FILE`: path for the SQLite foundation store
+- `ALLOW_DEMO_CREDENTIALS=true`: allows env fallback credentials in production-like environments
+- `DEMO_MODE=keynote|corporate`: enables demo content modes for local work
+
+## Scripts
+
+- `npm run dev`: Next.js dev server
+- `npm run dev:ws`: custom dev server with WebSocket support
+- `npm run build`: production build
+- `npm run start`: production custom server
+- `npm run test`: Vitest suite
+- `npm run lint`: ESLint
+- `npm run demo`: demo transcript driver
+- `npm run demo:corporate`: corporate demo transcript driver
+- `npm run keynote`: keynote transcript driver
+
+## Product Flow
+
+1. A presenter signs in with the lightweight workspace session flow at `/login`.
+2. The active workspace is stored server-side and attached to a signed cookie.
+3. Provider credentials are saved per workspace from `/app/settings`.
+4. The client streams microphone input through Deepgram using a short-lived browser token.
+5. The orchestrator runs a deterministic pipeline over transcript text:
+   retrieve context, find references, generate summaries, and build charts.
+6. Results are emitted as session events and rendered live as a presentation HUD.
+
+## Core Paths
+
+- App shell: [src/app/app/page.tsx](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/src/app/app/page.tsx)
+- Login: [src/app/login/page.tsx](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/src/app/login/page.tsx)
+- Workspace settings: [src/components/workspace/workspace-settings-panel.tsx](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/src/components/workspace/workspace-settings-panel.tsx)
+- Orchestrator: [src/services/orchestrator/orchestrator.service.ts](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/src/services/orchestrator/orchestrator.service.ts)
+- Auth/workspaces: [src/server/foundation/repository.ts](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/src/server/foundation/repository.ts)
+- Event fanout: [src/server/session-events.ts](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/src/server/session-events.ts)
+
+## Current Persistence Model
+
+Workspace, session, credential, and source metadata are stored in a local SQLite file through [src/server/foundation/store.ts](/Users/trinabgoswamy/Downloads/PROJECT%20HUB/echolens/src/server/foundation/store.ts).
+
+This is good enough for local development and single-instance deployment, but it is not the final scale-out persistence layer. For multi-instance Cloud Run or broader production rollout, the next recommended step is replacing that store with Postgres while keeping the same repository interfaces.
+
+## Verification Status
+
+The app build path currently passes with:
 
 ```bash
-npm run demo
+npm run build
 ```
 
-5. Run tests:
-
-```bash
-npm run test
-```
-
-For remaining implementation work, see [TODO.md](TODO.md).
-
-## Architecture Overview
-
-Momentum is a real-time sales coaching platform built on a voice + agent pipeline. The current architecture is designed to swap in external services (Smallest.ai, Mastra.ai, CRM, Pinecone) while keeping a stable UI + WebSocket backbone.
-
-### High-Level Flow
-1. Audio is streamed from the client to the server over WebSocket.
-2. The voice layer (Smallest.ai wrapper) emits partial/final transcripts.
-3. Final transcripts are persisted and routed to the sales orchestration layer.
-4. The orchestration layer detects objections, buying signals, next steps, coaching tips, and compliance warnings.
-5. Signals are broadcast back to the UI in real time over WebSocket.
-6. CRM / Clientzone updates are sent via tool wrappers (currently TODOs).
-
-### Core Components
-- **Voice Layer**: `src/voice/smallest-voice-pipeline.ts` and `src/services/voice/voice-session-manager.ts`
-  - Streams audio → transcripts.
-  - Supports barge‑in and low‑latency end‑of‑speech detection (TODO).
-- **Sales Orchestrator**: `src/services/sales/sales-orchestrator.ts`
-  - Current heuristic engine; designed to be replaced by Mastra agents + workflows.
-  - Broadcasts `sales:*` events (stage, objections, signals, coaching, compliance, summary).
-- **Mastra Runtime Scaffolding**: `src/mastra/*`
-  - Agent/workflow/tool definitions are in place.
-  - `MastraRuntime.generate` is a stub waiting for SDK integration.
-- **Transcript + Memory**:
-  - `src/services/transcript/transcript-store.ts` collects transcripts.
-  - `src/services/memory/thread-memory.ts` mocks thread memory.
-- **UI + State**:
-  - Store: `src/store/momentum-store.ts`
-  - WebSocket hook: `src/hooks/use-momentum-ws.ts`
-  - Sales coaching UI: `src/components/layout/main-layout.tsx`
-- **Integrations (Wrappers)**:
-  - CRM: `src/mastra/tools/crm-tool.ts` (TODO: Salesforce or equivalent)
-  - Knowledge Base: `src/mastra/tools/knowledge-base-tool.ts` (TODO: Pinecone)
-  - Calendar: `src/mastra/tools/calendar-tool.ts` (TODO)
-  - Clientzone: `src/integrations/clientzone/clientzone.adapter.ts` (TODO)
-
-### WebSocket Events
-The UI listens for:
-- `transcript:update`
-- `sales:stage`, `sales:objection`, `sales:buying-signal`, `sales:next-step`
-- `sales:coaching`, `sales:compliance`, `sales:summary`
-- `voice:status`
-
+Some upstream lint and test suites outside the core EchoLabs HUD path still need cleanup, especially around newer CRM and Mastra modules. If you are shipping the current presentation HUD flow, build verification is the most reliable gate right now.

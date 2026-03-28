@@ -26,7 +26,7 @@ export function Hero() {
                 >
                     <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
                     <span className="text-sm font-medium text-[var(--foreground-muted)] tracking-wide uppercase">
-                        AI-Powered Presentation Companion
+                        AI-Powered Presentation HUD
                     </span>
                 </motion.div>
 
@@ -48,7 +48,7 @@ export function Hero() {
                     transition={{ delay: 1.2, duration: 0.8 }}
                     className="text-2xl md:text-3xl font-light text-[var(--foreground-muted)] max-w-3xl mx-auto mb-16 leading-relaxed"
                 >
-                    Momentum transforms your pitch into a living visual experience.
+                    EchoLabs turns live presentations into a reactive HUD with grounded visuals and context.
                 </motion.p>
 
                 {/* CTA */}

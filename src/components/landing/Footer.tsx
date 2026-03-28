@@ -25,9 +25,9 @@ export function Footer() {
     };
 
     const socials = [
-        { icon: Twitter, href: 'https://twitter.com/momentum', label: 'Twitter' },
-        { icon: Github, href: 'https://github.com/momentum', label: 'GitHub' },
-        { icon: Linkedin, href: 'https://linkedin.com/company/momentum', label: 'LinkedIn' },
+        { icon: Twitter, href: 'https://twitter.com/echolabs', label: 'Twitter' },
+        { icon: Github, href: 'https://github.com/Hostileoracle0606/EchoLabs', label: 'GitHub' },
+        { icon: Linkedin, href: 'https://linkedin.com/company/echolabs', label: 'LinkedIn' },
     ];
 
     return (
@@ -38,15 +38,15 @@ export function Footer() {
                     <div className="col-span-2">
                         <Link href="/" className="inline-flex items-center gap-2 mb-4">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">M</span>
+                                <span className="text-white font-bold text-sm">E</span>
                             </div>
                             <span className="text-xl font-semibold text-[var(--foreground)]">
-                                Momentum
+                                EchoLabs
                             </span>
                         </Link>
                         <p className="text-sm text-[var(--foreground-muted)] max-w-xs mb-4">
-                            AI-powered presentation companion that transforms your voice into
-                            stunning visualizations.
+                            A live presentation HUD that turns spoken ideas into grounded visuals,
+                            references, and summaries.
                         </p>
                         {/* Socials */}
                         <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export function Footer() {
                 {/* Bottom */}
                 <div className="pt-8 border-t border-[var(--glass-border)] flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm text-[var(--foreground-subtle)]">
-                        © {currentYear} Momentum. All rights reserved.
+                        © {currentYear} EchoLabs. All rights reserved.
                     </p>
                     <p className="text-sm text-[var(--foreground-subtle)]">
                         Built with ❤️ for presenters everywhere

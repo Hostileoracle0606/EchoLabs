@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Momentum — AI Presentation Companion",
-  description: "Real-time AI-powered presentation companion that visualizes, references, and summarizes as you speak.",
+  title: "EchoLabs — Live Presentation HUD",
+  description: "Real-time AI presentation HUD that visualizes, references, and summarizes as you speak.",
 };
 
 export default function RootLayout({
