@@ -3,12 +3,24 @@ import { createWsMessage, serializeWsMessage, parseWsMessage } from './ws-events
 
 describe('WsEvents', () => {
   it('creates a well-formed WsMessage', () => {
-    const msg = createWsMessage('agent:chart', 'session-1', { mermaidCode: 'pie title Test' });
+    const msg = createWsMessage('agent:chart', 'session-1', {
+      chartSpec: {
+        kind: 'metric',
+        title: 'Test',
+        value: '40%',
+      },
+    });
 
     expect(msg.event).toBe('agent:chart');
     expect(msg.sessionId).toBe('session-1');
     expect(msg.timestamp).toBeGreaterThan(0);
-    expect(msg.payload).toEqual({ mermaidCode: 'pie title Test' });
+    expect(msg.payload).toEqual({
+      chartSpec: {
+        kind: 'metric',
+        title: 'Test',
+        value: '40%',
+      },
+    });
   });
 
   it('serializes a message to JSON string', () => {

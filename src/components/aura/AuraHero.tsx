@@ -1,34 +1,32 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { AuralBlobMesh } from './AuralBlob';
 
 export function AuraHero() {
-    return (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{
-                    opacity: [0.3, 0.5, 0.3],
-                    scale: [1, 1.2, 1],
-                }}
-                transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                }}
-                className="w-[800px] h-[800px] rounded-full bg-gradient-radial from-violet-500/30 via-blue-500/20 to-transparent blur-3xl mix-blend-screen"
-            />
-            <motion.div
-                animate={{
-                    rotate: 360,
-                    scale: [1, 1.1, 1]
-                }}
-                transition={{
-                    rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-                    scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
-                }}
-                className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-cyan-400/20 to-purple-500/20 blur-2xl"
-            />
-        </div>
-    );
+  return (
+    <div className="w-full h-full relative">
+      {/* CSS radial glow — replaces Bloom which glitches with alpha:true canvas */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.05) 40%, transparent 70%)',
+        }}
+      />
+      <Canvas
+        gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+        camera={{ position: [0, 0, 3], fov: 45 }}
+        dpr={[1, 1.5]}
+        style={{ background: 'transparent' }}
+      >
+        <Suspense fallback={null}>
+          <ambientLight intensity={0.4} />
+          <pointLight position={[5, 5, 5]} intensity={0.6} />
+          <AuralBlobMesh />
+        </Suspense>
+      </Canvas>
+    </div>
+  );
 }

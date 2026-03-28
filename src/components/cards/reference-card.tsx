@@ -3,8 +3,12 @@
 import { motion } from 'motion/react';
 
 interface ReferenceSource {
+  sourceId: string;
+  connectorId: string;
+  connectorType: string;
+  syncedAt: string;
   title: string;
-  url: string;
+  url?: string;
   snippet: string;
   confidence: 'verified' | 'partial' | 'unverified';
   domain: string;
@@ -39,15 +43,22 @@ export function ReferenceCard({ sources, query }: ReferenceCardProps) {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
-                >
+                <span className="text-sm font-medium text-blue-600">
                   {source.title}
-                </a>
-                <p className="mt-0.5 text-[11px] text-slate-400">{source.domain}</p>
+                </span>
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  {source.domain} • synced {new Date(source.syncedAt).toLocaleString()}
+                </p>
+                {source.url ? (
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-block text-[11px] text-blue-500 hover:underline"
+                  >
+                    Open source
+                  </a>
+                ) : null}
               </div>
               <span
                 className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${style.bg} ${style.text} ${style.border}`}

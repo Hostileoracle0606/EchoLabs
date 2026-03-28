@@ -1,0 +1,281 @@
+{
+  "company": {
+    "name": "NovaBridge Technologies",
+    "industry": "Enterprise SaaS — Supply Chain Intelligence",
+    "stage": "Series C ($85M raised), ~$42M ARR",
+    "headcount": 310,
+    "hq": "Austin, TX",
+    "meetingContext": "Q4 2025 Quarterly Business Review"
+  },
+  "emails": [
+    {
+      "id": "email_churn_alert",
+      "keywords": ["churn", "renewal", "customer", "risk", "logo", "retention", "ndr", "contract"],
+      "from": "Lena Vasquez",
+      "subject": "URGENT: Three Enterprise Renewals at Risk",
+      "date": "Yesterday",
+      "preview": "Flagging that Meridian Health ($480K ARR), TrueNorth Logistics ($310K ARR), and Pinnacle Manufacturing ($260K ARR) are all showing churn signals. Meridian's usage dropped 40% last month after their VP of Ops left. TrueNorth is evaluating a competitor — Chainlink AI. We need an exec-level save plan by EOW.",
+      "avatarColor": "#ef4444"
+    },
+    {
+      "id": "email_pipeline_update",
+      "keywords": ["pipeline", "deal", "sales", "enterprise", "forecast", "quota", "aq", "close"],
+      "from": "Derek Okonkwo",
+      "subject": "Q4 Pipeline Review — $8.2M Weighted",
+      "date": "Today",
+      "preview": "Current weighted pipeline is $8.2M against a $6.5M target. Top deals: GreenField Energy ($1.4M, 75% probability, Champion: their CTO), Atlas Freight ($890K, 60%, awaiting security review), and Cobalt Systems ($720K, 50%, needs POC extension). Legal redlines on GreenField expected this week.",
+      "avatarColor": "#10b981"
+    },
+    {
+      "id": "email_board_deck",
+      "keywords": ["board", "deck", "investor", "metrics", "reporting", "governance", "irr", "burn"],
+      "from": "Natasha Kim",
+      "subject": "Board Deck v3 — Final Metrics Review",
+      "date": "Today",
+      "preview": "Attached is the latest board deck. Key metrics: $42M ARR (up 38% YoY), Net Dollar Retention 112%, Gross Margin 74.2%, CAC Payback 18 months, Burn Multiple 1.6x. The board will push on Rule of 40 (we're at 36). Please review the cohort analysis on slide 14 before Thursday.",
+      "avatarColor": "#a855f7"
+    },
+    {
+      "id": "email_product_incident",
+      "keywords": ["incident", "outage", "downtime", "sla", "availability", "p1", "postmortem", "uptime"],
+      "from": "Raj Subramanian",
+      "subject": "P1 Postmortem: 4.2hr Outage on Oct 28",
+      "date": "Oct 30, 2025",
+      "preview": "Root cause: cascading failure in the demand forecasting pipeline caused by an unthrottled batch job during peak hours. Impact: 47 enterprise customers affected, 3 SLA breach notifications triggered. Remediation: circuit breakers deployed, load shedding added. Uptime MTD dropped to 99.91% (target: 99.95%).",
+      "avatarColor": "#f59e0b"
+    },
+    {
+      "id": "email_hiring_plan",
+      "keywords": ["hiring", "headcount", "recruiting", "engineer", "team", "growth", "budget", "offer"],
+      "from": "Monica Reeves",
+      "subject": "2026 Headcount Plan — Engineering & GTM",
+      "date": "Oct 25, 2025",
+      "preview": "Proposed net new hires for H1 2026: Engineering +18 (6 platform, 4 ML, 4 frontend, 4 SRE), Sales +12 (8 AEs, 4 SDRs), CS +6. Total comp impact: $4.8M annually. We need board approval by Dec 15. Current eng-to-employee ratio is 42% which is below the 50% benchmark for our stage.",
+      "avatarColor": "#3b82f6"
+    },
+    {
+      "id": "email_competitor_intel",
+      "keywords": ["competitor", "chainlink", "market", "threat", "positioning", "win", "loss", "battlecard"],
+      "from": "Priya Nair",
+      "subject": "Competitive Intel: Chainlink AI Series B ($60M)",
+      "date": "Oct 22, 2025",
+      "preview": "Chainlink AI just closed a $60M Series B led by Insight Partners. They're hiring aggressively in our Austin market. Win rate against them dropped from 68% to 54% last quarter. Key differentiator we're losing on: their real-time anomaly detection is 2x faster. Updating battlecards this week.",
+      "avatarColor": "#ec4899"
+    },
+    {
+      "id": "email_customer_expansion",
+      "keywords": ["expansion", "upsell", "cross-sell", "growth", "land", "expand", "tier", "upgrade"],
+      "from": "Derek Okonkwo",
+      "subject": "Expansion Pipeline: $3.1M in Active Upsells",
+      "date": "Oct 20, 2025",
+      "preview": "Three major expansion opps: Meridian Health upgrading to Enterprise tier (+$220K), BrightPath Retail adding Demand Forecasting module (+$180K), and Federal Express expanding from pilot to full network (+$1.2M). The FedEx deal needs a custom SLA and FedRAMP Moderate — product needs to confirm timeline.",
+      "avatarColor": "#14b8a6"
+    },
+    {
+      "id": "email_security_audit",
+      "keywords": ["security", "soc2", "compliance", "audit", "fedramp", "gdpr", "penetration", "vulnerability"],
+      "from": "Thomas Brennan",
+      "subject": "SOC 2 Type II Audit — Clean Report with Observations",
+      "date": "Oct 18, 2025",
+      "preview": "SOC 2 Type II audit is complete. Clean opinion with two observations: (1) access review cadence for production databases should move from quarterly to monthly, (2) third-party vendor risk assessments need documentation improvement. No material exceptions. FedRAMP timeline remains Q2 2026.",
+      "avatarColor": "#6366f1"
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc_board_deck",
+      "keywords": ["board", "deck", "metrics", "arr", "ndr", "margin", "burn", "cohort", "investor"],
+      "title": "NovaBridge_Q4_Board_Deck.pptx",
+      "modified": "Today",
+      "preview": "Q4 2025 Board Meeting Deck. ARR: $42M (+38% YoY). NDR: 112%. Gross Margin: 74.2%. CAC Payback: 18mo. Burn Multiple: 1.6x. Rule of 40: 36. Logos: 284 (net +22 this quarter). Enterprise mix: 68% of ARR from contracts >$100K.",
+      "fileType": "pptx"
+    },
+    {
+      "id": "doc_financial_model",
+      "keywords": ["model", "financial", "forecast", "revenue", "budget", "projection", "scenario", "plan"],
+      "title": "2026_Financial_Plan_v4.xlsx",
+      "modified": "Oct 28, 2025",
+      "preview": "Three scenarios — Base: $58M ARR (38% growth), Upside: $65M (55% growth), Downside: $50M (19% growth). Break-even target: Q3 2027. Cash runway at current burn: 22 months. Key assumption: 80% of expansion pipeline converts.",
+      "fileType": "xlsx"
+    },
+    {
+      "id": "doc_product_roadmap",
+      "keywords": ["roadmap", "product", "feature", "release", "sprint", "ai", "ml", "module", "platform"],
+      "title": "Product_Roadmap_2026.pdf",
+      "modified": "Oct 25, 2025",
+      "preview": "H1 2026 priorities: (1) Real-time Anomaly Detection v2 — closes competitive gap with Chainlink, (2) FedRAMP Moderate certification — unlocks $12M federal pipeline, (3) Self-serve analytics dashboard — reduces CS burden by 30%, (4) Multi-tenant data isolation — required for APAC expansion.",
+      "fileType": "pdf"
+    },
+    {
+      "id": "doc_competitive_analysis",
+      "keywords": ["competitor", "analysis", "chainlink", "market", "positioning", "share", "win", "rate"],
+      "title": "Competitive_Landscape_Q4.docx",
+      "modified": "Oct 22, 2025",
+      "preview": "Primary competitors: Chainlink AI (real-time analytics, $60M Series B), Kinaxis (legacy incumbent, $500M+ revenue), Blue Yonder (Panasonic-owned, broad but slow). Our win rate: 62% overall, 54% vs Chainlink (down from 68%), 78% vs legacy incumbents. Key advantage: time-to-value (avg 6 weeks vs 6 months).",
+      "fileType": "docx"
+    },
+    {
+      "id": "doc_customer_health",
+      "keywords": ["health", "customer", "score", "nps", "csat", "churn", "risk", "retention", "success"],
+      "title": "Customer_Health_Dashboard_Oct.xlsx",
+      "modified": "Oct 15, 2025",
+      "preview": "284 active logos. Health distribution: Green 62%, Yellow 24%, Red 14%. NPS: 42 (industry avg: 36). Top churn predictors: usage decline >25%, no exec sponsor, support ticket spike. At-risk ARR: $2.1M (5% of total). Avg time-to-churn-signal: 47 days before renewal.",
+      "fileType": "xlsx"
+    },
+    {
+      "id": "doc_engineering_report",
+      "keywords": ["engineering", "velocity", "sprint", "deployment", "incidents", "tech", "debt", "reliability"],
+      "title": "Engineering_Monthly_Report_Oct.pdf",
+      "modified": "Nov 1, 2025",
+      "preview": "Sprint velocity: 94 points (target 90). Deployment frequency: 4.2/day. MTTR: 38 minutes (down from 52). Change failure rate: 3.1%. Tech debt ratio: 18% of sprint capacity allocated. P1 incidents: 1 (Oct 28 outage). Infra costs: $420K/mo (up 12% — driven by GPU compute for ML pipeline).",
+      "fileType": "pdf"
+    },
+    {
+      "id": "doc_post_mortem",
+      "keywords": ["postmortem", "incident", "outage", "root", "cause", "remediation", "sla", "availability"],
+      "title": "P1_Postmortem_Oct28_Outage.docx",
+      "modified": "Oct 30, 2025",
+      "preview": "Incident Duration: 4h 12m. Root Cause: unthrottled batch ingestion job during peak hours triggered cascading OOM failures across the demand forecasting cluster. Impact: 47 enterprise customers, 3 SLA breaches ($45K credit exposure). Remediation: circuit breakers, rate limiters, canary deployments for batch jobs.",
+      "fileType": "docx"
+    },
+    {
+      "id": "doc_sales_playbook",
+      "keywords": ["sales", "playbook", "process", "methodology", "meddpicc", "close", "discovery", "champion"],
+      "title": "Enterprise_Sales_Playbook_v3.pdf",
+      "modified": "Oct 10, 2025",
+      "preview": "Updated MEDDPICC framework for enterprise deals >$200K. Key changes: mandatory technical validation before Stage 3, dual-thread with economic buyer by Stage 4, minimum 3 champion touchpoints per month. Average enterprise sales cycle: 94 days (target: 75 days).",
+      "fileType": "pdf"
+    }
+  ],
+  "calendar": [
+    {
+      "id": "cal_qbr",
+      "keywords": ["qbr", "quarterly", "review", "business", "metrics", "leadership"],
+      "title": "Q4 Quarterly Business Review",
+      "time": "2:00 PM - 4:30 PM",
+      "date": "Today",
+      "attendees": ["Lena Vasquez (CRO)", "Raj Subramanian (CTO)", "Natasha Kim (CFO)", "Monica Reeves (VP People)", "Derek Okonkwo (VP Sales)", "Priya Nair (VP Product)"]
+    },
+    {
+      "id": "cal_board_meeting",
+      "keywords": ["board", "meeting", "investor", "directors", "governance"],
+      "title": "Board of Directors Meeting",
+      "time": "9:00 AM - 12:00 PM",
+      "date": "Thursday",
+      "attendees": ["Board Members", "CEO", "CFO", "CRO", "CTO"]
+    },
+    {
+      "id": "cal_greenfield_exec",
+      "keywords": ["greenfield", "deal", "enterprise", "executive", "sponsor", "close"],
+      "title": "GreenField Energy — Executive Alignment Call",
+      "time": "11:00 AM - 12:00 PM",
+      "date": "Tomorrow",
+      "attendees": ["Derek Okonkwo", "GreenField CTO", "GreenField VP Supply Chain"]
+    },
+    {
+      "id": "cal_product_sprint",
+      "keywords": ["product", "sprint", "planning", "roadmap", "engineering", "backlog"],
+      "title": "Sprint 48 Planning — Anomaly Detection v2",
+      "time": "10:00 AM - 11:30 AM",
+      "date": "Monday",
+      "attendees": ["Raj Subramanian", "ML Team Lead", "Platform Eng Lead", "Priya Nair"]
+    },
+    {
+      "id": "cal_customer_save",
+      "keywords": ["churn", "save", "customer", "retention", "escalation", "meridian"],
+      "title": "Meridian Health — Executive Save Call",
+      "time": "3:00 PM - 3:45 PM",
+      "date": "Wednesday",
+      "attendees": ["CEO", "Lena Vasquez", "Meridian VP Ops (new)", "CS Lead"]
+    },
+    {
+      "id": "cal_budget_review",
+      "keywords": ["budget", "headcount", "hiring", "plan", "finance", "approval"],
+      "title": "2026 Budget & Headcount Approval",
+      "time": "1:00 PM - 2:00 PM",
+      "date": "Dec 10, 2025",
+      "attendees": ["CFO", "VP People", "CTO", "CRO", "CEO"]
+    }
+  ],
+  "slack": [
+    {
+      "id": "slack_deal_desk",
+      "keywords": ["deal", "pricing", "discount", "approval", "greenfield", "contract"],
+      "channel": "#deal-desk",
+      "from": "Derek Okonkwo",
+      "message": "GreenField Energy is asking for a 15% multi-year discount on a 3-year commitment ($1.4M TCV). Their CTO is our champion but procurement is pushing back on our standard MSA terms around liability caps. Legal is reviewing.",
+      "time": "2 hours ago"
+    },
+    {
+      "id": "slack_engineering",
+      "keywords": ["deploy", "release", "bug", "fix", "anomaly", "detection", "sprint"],
+      "channel": "#engineering",
+      "from": "Raj Subramanian",
+      "message": "Anomaly Detection v2 alpha is passing integration tests. Latency down from 340ms to 180ms — this closes the gap with Chainlink. Targeting beta release for 15 enterprise customers by Dec 1. Need product to finalize the alerting UX before we can ship.",
+      "time": "1 hour ago"
+    },
+    {
+      "id": "slack_customer_success",
+      "keywords": ["churn", "customer", "risk", "health", "save", "meridian", "truenorth", "usage"],
+      "channel": "#customer-success",
+      "from": "Lena Vasquez",
+      "message": "Meridian Health update: their new VP of Ops (Jamie Torres) agreed to the exec save call on Wednesday. Key issue is they lost institutional knowledge when the previous VP left. We need to re-onboard their team and show value fast. Proposing a complimentary QBR + dedicated CSM for 90 days.",
+      "time": "45 min ago"
+    },
+    {
+      "id": "slack_finance",
+      "keywords": ["burn", "runway", "cash", "revenue", "forecast", "budget", "plan"],
+      "channel": "#finance",
+      "from": "Natasha Kim",
+      "message": "Updated the 2026 plan. At current burn ($2.8M/mo) we have 22 months of runway. If we hit base case ($58M ARR) and control headcount to +36, we extend to 28 months and break even by Q3 2027. Board will want to see the bridge to profitability.",
+      "time": "3 hours ago"
+    },
+    {
+      "id": "slack_product",
+      "keywords": ["feature", "request", "roadmap", "customer", "feedback", "fedramp", "federal"],
+      "channel": "#product",
+      "from": "Priya Nair",
+      "message": "FedRAMP update: our authorization package is 60% complete. Biggest blocker is the third-party vendor audit documentation (same issue flagged in SOC 2). If we clear this by end of November, we're on track for Q2 2026 authorization. This unlocks $12M in qualified federal pipeline.",
+      "time": "Yesterday"
+    },
+    {
+      "id": "slack_allhands",
+      "keywords": ["allhands", "announcement", "company", "culture", "wins", "celebration"],
+      "channel": "#general",
+      "from": "CEO",
+      "message": "Huge quarter everyone. 22 net new logos, $42M ARR milestone, and Anomaly Detection v2 is almost ready. Shoutout to the CS team for keeping NDR above 110% despite the Meridian situation. Board meeting Thursday — will share updates at Friday all-hands.",
+      "time": "Yesterday"
+    }
+  ],
+  "dataPoints": {
+    "arrMillions": 42,
+    "arrGrowthPct": 38,
+    "ndr": 112,
+    "grossMarginPct": 74.2,
+    "cacPaybackMonths": 18,
+    "burnMultiple": 1.6,
+    "ruleOf40": 36,
+    "totalLogos": 284,
+    "netNewLogos": 22,
+    "enterpriseMixPct": 68,
+    "atRiskArrMillions": 2.1,
+    "nps": 42,
+    "greenHealthPct": 62,
+    "yellowHealthPct": 24,
+    "redHealthPct": 14,
+    "headcount": 310,
+    "engineeringPct": 42,
+    "sprintVelocity": 94,
+    "deployFrequency": 4.2,
+    "mttrMinutes": 38,
+    "uptimePct": 99.91,
+    "infraCostMonthly": 420000,
+    "cashRunwayMonths": 22,
+    "weightedPipelineMillions": 8.2,
+    "pipelineTargetMillions": 6.5,
+    "avgSalesCycleDays": 94,
+    "winRateOverall": 62,
+    "winRateVsChainlink": 54,
+    "expansionPipelineMillions": 3.1
+  }
+}

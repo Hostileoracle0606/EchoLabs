@@ -1,11 +1,14 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import type { Server as HttpServer, IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
-import { serializeWsMessage, createWsMessage, parseWsMessage } from './ws-events';
 import { getVoiceSessionManager } from '@/services/voice/voice-session-manager';
 import { resetSalesSession } from '@/services/sales/sales-orchestrator';
 import { getTranscriptStore } from '@/services/transcript/transcript-store';
+import { parseWsMessage } from './ws-events';
 import type { WsEventType } from '@/types/events';
+import { SESSION_COOKIE_NAME, parseCookieHeader } from '@/server/foundation/auth';
+import { getSessionViewer } from '@/server/foundation/repository';
+import { publishSessionEvent } from '@/server/session-events';
 
 interface ConnectedClient {
   ws: WebSocket;
@@ -121,6 +124,15 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
     const { pathname } = new URL(request.url || '', `http://${request.headers.host}`);
 
     if (pathname === '/ws') {
+      const sessionId = parseCookieHeader(request.headers.cookie)[SESSION_COOKIE_NAME];
+      const viewer = getSessionViewer(sessionId);
+
+      if (!viewer) {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
       wss!.handleUpgrade(request, socket, head, (ws) => {
         wss!.emit('connection', ws, request);
       });
@@ -133,12 +145,11 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
 
 export function broadcast<T>(event: WsEventType, sessionId: string, payload: T): void {
   console.log(`[WS] Broadcasting ${event} to session ${sessionId}. WSS exists: ${!!wss}. Clients: ${clients.size}`);
+  const message = publishSessionEvent(event, sessionId, payload);
+
   if (!wss) {
-    console.error('[WS] Error: WebSocketServer is not initialized!');
     return;
   }
-
-  const message = serializeWsMessage(createWsMessage(event, sessionId, payload));
 
   for (const [, client] of clients) {
     if (
@@ -151,9 +162,9 @@ export function broadcast<T>(event: WsEventType, sessionId: string, payload: T):
 }
 
 export function broadcastAll<T>(event: WsEventType, payload: T): void {
-  if (!wss) return;
+  const message = publishSessionEvent(event, '', payload);
 
-  const message = serializeWsMessage(createWsMessage(event, '', payload));
+  if (!wss) return;
 
   for (const [, client] of clients) {
     if (client.ws.readyState === WebSocket.OPEN) {

@@ -1,57 +1,76 @@
-import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { findContextMatches } from './context.service';
 
 describe('ContextService', () => {
-  it('matches email from Evelyn about regulatory risk', async () => {
+  let tempDir: string;
+  const workspaceId = 'workspace-test';
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'echolens-context-'));
+    vi.stubEnv('ECHOLENS_DATA_FILE', path.join(tempDir, 'store.json'));
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it('matches email from Lena about churn risk', async () => {
     const result = await findContextMatches({
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.85,
-        excerpt: 'Evelyn flagged a regulatory antitrust risk on the OmniCorp deal',
+        excerpt: 'Lena flagged three enterprise renewals at risk with churn signals',
         priority: 6,
       },
-      context: 'discussing deal risks',
+      context: 'discussing customer retention',
       sessionId: 'test-session',
+      workspaceId,
     });
 
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
     const emailMatch = result.matches.find((m) => m.matchType === 'email');
     expect(emailMatch).toBeTruthy();
-    expect(emailMatch!.from).toContain('Evelyn');
+    expect(emailMatch!.from).toContain('Lena');
   });
 
-  it('matches a document about the IC memo', async () => {
+  it('matches a document about the board deck', async () => {
     const result = await findContextMatches({
       intent: {
         type: 'DOC_MENTION',
         confidence: 0.86,
-        excerpt: 'the investment committee memo on the OmniCorp acquisition',
+        excerpt: 'the board deck with ARR metrics and investor reporting',
         priority: 6,
       },
-      context: 'reviewing deal documents',
+      context: 'reviewing board materials',
       sessionId: 'test-session',
+      workspaceId,
     });
 
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
     const docMatch = result.matches.find((m) => m.matchType === 'doc');
     expect(docMatch).toBeTruthy();
-    expect(docMatch!.title).toContain('IC_Memo');
+    expect(docMatch!.title).toContain('Board_Deck');
   });
 
-  it('matches email about churn and NDR metrics', async () => {
+  it('matches email about pipeline and deal forecast', async () => {
     const result = await findContextMatches({
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.8,
-        excerpt: 'Rajiv validated the churn retention NDR multiple',
+        excerpt: 'Derek pipeline update weighted deal forecast enterprise close',
         priority: 6,
       },
-      context: 'valuation analysis',
+      context: 'sales pipeline review',
       sessionId: 'test-session',
+      workspaceId,
     });
 
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
-    const match = result.matches.find((m) => m.from?.includes('Rajiv'));
+    const match = result.matches.find((m) => m.from?.includes('Derek'));
     expect(match).toBeTruthy();
   });
 
@@ -65,6 +84,7 @@ describe('ContextService', () => {
       },
       context: 'unrelated topic',
       sessionId: 'test-session',
+      workspaceId,
     });
 
     expect(result.matches).toHaveLength(0);
@@ -75,11 +95,12 @@ describe('ContextService', () => {
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.9,
-        excerpt: 'OmniCorp regulatory antitrust risk deal break fee',
+        excerpt: 'churn renewal customer risk retention contract enterprise',
         priority: 6,
       },
-      context: 'deal risk assessment',
+      context: 'customer health assessment',
       sessionId: 'test-session',
+      workspaceId,
     });
 
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
@@ -91,11 +112,12 @@ describe('ContextService', () => {
       intent: {
         type: 'DOC_MENTION',
         confidence: 0.8,
-        excerpt: 'the OmniCorp deal investment committee review negotiation',
+        excerpt: 'the board meeting investor deck budget headcount hiring approval',
         priority: 6,
       },
-      context: 'deal review',
+      context: 'board prep',
       sessionId: 'test-session',
+      workspaceId,
     });
 
     expect(result.matches.length).toBeGreaterThanOrEqual(1);
@@ -106,11 +128,12 @@ describe('ContextService', () => {
       intent: {
         type: 'EMAIL_MENTION',
         confidence: 0.8,
-        excerpt: 'OmniCorp investment committee review regulatory risk valuation IRR fund',
+        excerpt: 'pipeline deal churn customer board hiring engineering product roadmap budget forecast',
         priority: 6,
       },
       context: 'everything',
       sessionId: 'test-session',
+      workspaceId,
     });
 
     expect(result.matches.length).toBeLessThanOrEqual(3);

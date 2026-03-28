@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 import { findReferences } from '@/services/reference/reference.service';
 import { broadcast } from '@/websocket/ws-server';
+import { requireViewer } from '@/server/foundation/auth';
+import { createAgentStatus, createReferencePayload } from '@/server/agent-payloads';
 
 const ReferenceRequestSchema = z.object({
   intent: z.object({
@@ -16,6 +18,7 @@ const ReferenceRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const viewer = await requireViewer();
     const body = await request.json();
     const parsed = ReferenceRequestSchema.safeParse(body);
 
@@ -26,26 +29,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    broadcast('agent:status', parsed.data.sessionId, {
-      agent: 'reference',
-      status: 'processing',
+    broadcast('agent:status', parsed.data.sessionId, createAgentStatus('reference', 'processing'));
+
+    const result = await findReferences({
+      ...parsed.data,
+      workspaceId: viewer.workspace.id,
     });
 
-    const result = await findReferences(parsed.data);
+    broadcast('agent:reference', parsed.data.sessionId, createReferencePayload(result));
 
-    broadcast('agent:reference', parsed.data.sessionId, {
-      sources: result.sources,
-      query: result.query,
-    });
-
-    broadcast('agent:status', parsed.data.sessionId, {
-      agent: 'reference',
-      status: 'complete',
-    });
+    broadcast('agent:status', parsed.data.sessionId, createAgentStatus('reference', 'complete'));
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Reference Agent] Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error && error.message === 'UNAUTHENTICATED'
+            ? 'Unauthorized'
+            : 'Internal server error',
+      },
+      { status: error instanceof Error && error.message === 'UNAUTHENTICATED' ? 401 : 500 }
+    );
   }
 }

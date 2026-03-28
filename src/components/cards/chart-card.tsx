@@ -1,91 +1,116 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import type { ChartSpec } from '@/types/charts';
 
-interface MermaidChartProps {
-  code: string;
-  id: string;
-  title?: string;
+interface StructuredChartProps {
+  spec: ChartSpec;
   narration?: string;
 }
 
-export function MermaidChart({ code, id, title, narration }: MermaidChartProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState(false);
+const PIE_COLORS = ['#38bdf8', '#34d399', '#f59e0b', '#f472b6', '#818cf8', '#fb7185'];
 
-  useEffect(() => {
-    if (!ref.current || !code) return;
+function renderPieGradient(spec: Extract<ChartSpec, { kind: 'pie' }>): string {
+  const total = spec.data.reduce((sum, entry) => sum + entry.value, 0) || 1;
+  let cursor = 0;
 
-    let cancelled = false;
+  return spec.data
+    .map((entry, index) => {
+      const start = (cursor / total) * 100;
+      cursor += entry.value;
+      const end = (cursor / total) * 100;
+      return `${PIE_COLORS[index % PIE_COLORS.length]} ${start}% ${end}%`;
+    })
+    .join(', ');
+}
 
-    async function render() {
-      try {
-        const mermaid = (await import('mermaid')).default;
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: 'base',
-          themeVariables: {
-            // Main Backgrounds
-            primaryColor: '#eef2ff', // Indigo-50
-            primaryTextColor: '#334155', // Slate-700
-            primaryBorderColor: '#a5b4fc', // Indigo-300
+function BarChartView({ spec }: { spec: Extract<ChartSpec, { kind: 'bar' }> }) {
+  const maxValue = Math.max(...spec.data.map((entry) => entry.value), 1);
 
-            // Lines & Arrows
-            lineColor: '#6366f1', // Indigo-500
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3">
+        {spec.data.map((entry, index) => (
+          <div key={`${entry.label}-${index}`} className="grid grid-cols-[110px_1fr_56px] items-center gap-3 text-sm">
+            <span className="truncate text-slate-300">{entry.label}</span>
+            <div className="h-3 rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-300"
+                style={{ width: `${Math.max((entry.value / maxValue) * 100, 8)}%` }}
+              />
+            </div>
+            <span className="text-right font-mono text-slate-200">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+      {(spec.xLabel || spec.yLabel) && (
+        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
+          {spec.xLabel || 'Items'} • {spec.yLabel || 'Value'}
+        </p>
+      )}
+    </div>
+  );
+}
 
-            // Secondary Nodes
-            secondaryColor: '#f0fdf4', // Emerald-50
-            secondaryBorderColor: '#86efac', // Emerald-300
-            secondaryTextColor: '#334155', // Slate-700
+function PieChartView({ spec }: { spec: Extract<ChartSpec, { kind: 'pie' }> }) {
+  const total = spec.data.reduce((sum, entry) => sum + entry.value, 0) || 1;
 
-            // Tertiary Nodes
-            tertiaryColor: '#faf5ff', // Purple-50
-            tertiaryBorderColor: '#d8b4fe', // Purple-300
-            tertiaryTextColor: '#334155', // Slate-700
+  return (
+    <div className="grid gap-8 md:grid-cols-[220px_1fr] md:items-center">
+      <div
+        className="mx-auto h-[220px] w-[220px] rounded-full border border-white/10"
+        style={{ background: `conic-gradient(${renderPieGradient(spec)})` }}
+      />
+      <div className="space-y-3">
+        {spec.data.map((entry, index) => (
+          <div key={`${entry.label}-${index}`} className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+              />
+              <span className="text-sm text-slate-200">{entry.label}</span>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-sm text-white">{entry.value}</p>
+              <p className="text-[11px] text-slate-400">{Math.round((entry.value / total) * 100)}%</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-            // Notes
-            noteBkgColor: '#fffbeb', // Amber-50
-            noteTextColor: '#92400e', // Amber-800
-            noteBorderColor: '#fcd34d', // Amber-300
+function MetricChartView({ spec }: { spec: Extract<ChartSpec, { kind: 'metric' }> }) {
+  const trendColor =
+    spec.trend === 'up' ? 'text-emerald-300' : spec.trend === 'down' ? 'text-rose-300' : 'text-slate-300';
 
-            // Fonts
-            fontFamily: 'Inter, system-ui, sans-serif',
-            fontSize: '13px',
-          },
-        });
+  return (
+    <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 text-center">
+      <p className="text-sm uppercase tracking-[0.24em] text-slate-400">{spec.subtitle || 'Headline Metric'}</p>
+      <p className="mt-6 text-6xl font-semibold tracking-tight text-white">{spec.value}</p>
+      {spec.detail ? <p className={`mt-4 text-sm ${trendColor}`}>{spec.detail}</p> : null}
+    </div>
+  );
+}
 
-        const { svg } = await mermaid.render(`mermaid-${id}`, code);
-        if (!cancelled && ref.current) {
-          ref.current.innerHTML = svg;
-          setError(false);
-        }
-      } catch {
-        if (!cancelled && ref.current) {
-          setError(true);
-          ref.current.innerHTML = `<pre style="color:#dc2626;font-size:12px;padding:8px;white-space:pre-wrap;background:#fef2f2;border-radius:8px">${code}</pre>`;
-        }
-      }
-    }
-
-    render();
-    return () => { cancelled = true; };
-  }, [code, id]);
-
+export function StructuredChart({ spec, narration }: StructuredChartProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', duration: 0.5 }}
-      className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-secondary)]/30 p-5 backdrop-blur-sm"
+      className="w-full rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-secondary)]/30 p-5 backdrop-blur-sm"
     >
-      {title && (
-        <h3 className="mb-4 text-sm font-semibold text-[var(--foreground)]">{title}</h3>
-      )}
-      <div ref={ref} className="mermaid-container overflow-x-auto" />
-      {narration && !error && (
-        <p className="mt-4 text-xs leading-relaxed text-[var(--foreground-muted)] italic text-center max-w-[90%] mx-auto">{narration}</p>
-      )}
+      {spec.kind === 'bar' ? <BarChartView spec={spec} /> : null}
+      {spec.kind === 'pie' ? <PieChartView spec={spec} /> : null}
+      {spec.kind === 'metric' ? <MetricChartView spec={spec} /> : null}
+      {narration ? (
+        <p className="mt-4 text-center text-xs italic leading-relaxed text-[var(--foreground-muted)]">
+          {narration}
+        </p>
+      ) : null}
     </motion.div>
   );
 }

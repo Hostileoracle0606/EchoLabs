@@ -1,10 +1,22 @@
-import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import { MainLayout } from '@/components/layout/main-layout';
+import { getViewerFromRequest } from '@/server/foundation/auth';
 
-export default function Home() {
+export default async function Home() {
+  const viewer = await getViewerFromRequest();
+
+  if (!viewer) {
+    redirect('/login');
+  }
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <MainLayout />
-    </Suspense>
+    <MainLayout
+      viewer={{
+        userName: viewer.user.name,
+        userEmail: viewer.user.email,
+        workspaceId: viewer.workspace.id,
+        workspaceName: viewer.workspace.name,
+      }}
+    />
   );
 }

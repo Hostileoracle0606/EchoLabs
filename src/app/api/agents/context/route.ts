@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 import { findContextMatches } from '@/services/context/context.service';
 import { broadcast } from '@/websocket/ws-server';
+import type { ClassifiedIntent } from '@/types/intents';
+import { requireViewer } from '@/server/foundation/auth';
+import { createAgentStatus, createContextPayloads } from '@/server/agent-payloads';
 
 const ContextRequestSchema = z.object({
   intent: z.object({
@@ -17,6 +20,7 @@ const ContextRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   let sessionId = '';
   try {
+    const viewer = await requireViewer();
     const body = await request.json();
     const parsed = ContextRequestSchema.safeParse(body);
 
@@ -30,40 +34,27 @@ export async function POST(request: NextRequest) {
     sessionId = parsed.data.sessionId;
     const { intent, context } = parsed.data;
 
-    broadcast('agent:status', sessionId, {
-      agent: 'context',
-      status: 'processing',
-    });
+    broadcast('agent:status', sessionId, createAgentStatus('context', 'processing'));
+
+    const classifiedIntent: ClassifiedIntent = {
+      ...intent,
+      type: intent.type,
+    };
 
     const response = await findContextMatches({
-      intent: intent as any,
+      intent: classifiedIntent,
       context,
       sessionId,
+      workspaceId: viewer.workspace.id,
     });
 
     if (response.matches.length > 0) {
-      // Group matches by matchType so each broadcast has the correct type.
-      // Without this, a mixed result (email + doc) would all display as the
-      // first match's type — e.g., a doc showing with an email icon.
-      const grouped = new Map<string, typeof response.matches>();
-      for (const match of response.matches) {
-        const group = grouped.get(match.matchType) || [];
-        group.push(match);
-        grouped.set(match.matchType, group);
-      }
-
-      for (const [matchType, matches] of grouped) {
-        broadcast('agent:context', sessionId, {
-          matchType,
-          matches,
-        });
+      for (const payload of createContextPayloads(response)) {
+        broadcast('agent:context', sessionId, payload);
       }
     }
 
-    broadcast('agent:status', sessionId, {
-      agent: 'context',
-      status: 'complete',
-    });
+    broadcast('agent:status', sessionId, createAgentStatus('context', 'complete'));
 
     return NextResponse.json(response);
   } catch (error) {
@@ -75,6 +66,14 @@ export async function POST(request: NextRequest) {
         message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error && error.message === 'UNAUTHENTICATED'
+            ? 'Unauthorized'
+            : 'Internal server error',
+      },
+      { status: error instanceof Error && error.message === 'UNAUTHENTICATED' ? 401 : 500 }
+    );
   }
 }

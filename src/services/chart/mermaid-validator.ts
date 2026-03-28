@@ -1,6 +1,15 @@
-import type { MermaidChartType } from '@/types/agents';
+type LegacyMermaidChartType =
+  | 'pie'
+  | 'xychart-beta'
+  | 'graph'
+  | 'mindmap'
+  | 'timeline'
+  | 'quadrantChart'
+  | 'sequenceDiagram'
+  | 'gantt'
+  | 'erDiagram';
 
-const DIAGRAM_PATTERNS: { pattern: RegExp; type: MermaidChartType }[] = [
+const DIAGRAM_PATTERNS: { pattern: RegExp; type: LegacyMermaidChartType }[] = [
   { pattern: /^pie\b/m, type: 'pie' },
   { pattern: /^xychart-beta\b/m, type: 'xychart-beta' },
   { pattern: /^flowchart\b/m, type: 'graph' },
@@ -13,7 +22,7 @@ const DIAGRAM_PATTERNS: { pattern: RegExp; type: MermaidChartType }[] = [
   { pattern: /^erDiagram\b/m, type: 'erDiagram' },
 ];
 
-export function detectDiagramType(code: string): MermaidChartType | null {
+export function detectDiagramType(code: string): LegacyMermaidChartType | null {
   const trimmed = code.trim();
   for (const { pattern, type } of DIAGRAM_PATTERNS) {
     if (pattern.test(trimmed)) {

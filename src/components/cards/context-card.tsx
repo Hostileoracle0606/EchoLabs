@@ -3,6 +3,8 @@
 import { motion } from 'motion/react';
 interface ContextCardMatch {
   id: string;
+  connectorType: string;
+  syncedAt: string;
   title: string;
   preview: string;
   from?: string;
@@ -66,6 +68,9 @@ export function ContextCard({ match, matchType }: ContextCardProps) {
         {match.date && (
           <p className="text-[11px] text-slate-400">{match.date}</p>
         )}
+        <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+          {match.connectorType} • synced {new Date(match.syncedAt).toLocaleDateString()}
+        </p>
         <p className="mt-1 text-xs leading-relaxed text-slate-500 line-clamp-3">
           {match.preview}
         </p>

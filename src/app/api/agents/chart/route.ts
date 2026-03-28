@@ -3,6 +3,9 @@ import { z } from 'zod/v4';
 import { generateChart } from '@/services/chart/chart.service';
 import { broadcast } from '@/websocket/ws-server';
 import type { ChartPayload } from '@/types/events';
+import { requireViewer } from '@/server/foundation/auth';
+import { resolveWorkspaceProviderSecret } from '@/server/foundation/providers';
+import { createAgentStatus, createChartPayload } from '@/server/agent-payloads';
 
 const ChartRequestSchema = z.object({
   intent: z.object({
@@ -18,6 +21,7 @@ const ChartRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   let sessionId = '';
   try {
+    const viewer = await requireViewer();
     const body = await request.json();
     const parsed = ChartRequestSchema.safeParse(body);
 
@@ -30,28 +34,21 @@ export async function POST(request: NextRequest) {
 
     sessionId = parsed.data.sessionId;
 
-    broadcast('agent:status', sessionId, {
-      agent: 'chart',
-      status: 'processing',
-    });
+    broadcast('agent:status', sessionId, createAgentStatus('chart', 'processing'));
 
-    const result = await generateChart(parsed.data);
+    const result = await generateChart({
+      ...parsed.data,
+      providerApiKey:
+        resolveWorkspaceProviderSecret(viewer.workspace.id, 'gemini', 'GEMINI_API_KEY') ||
+        undefined,
+    });
     console.log('[Chart Agent] Generated Result:', result);
 
-    const chartPayload: ChartPayload = {
-      mermaidCode: result.mermaidCode,
-      chartType: result.chartType,
-      title: result.title,
-      sourceExcerpt: parsed.data.intent.excerpt,
-      narration: result.narration,
-    };
+    const chartPayload: ChartPayload = createChartPayload(result, parsed.data.intent.excerpt);
 
     console.log('[Chart Agent] Broadcasting Payload:', chartPayload);
     broadcast('agent:chart', sessionId, chartPayload);
-    broadcast('agent:status', sessionId, {
-      agent: 'chart',
-      status: 'complete',
-    });
+    broadcast('agent:status', sessionId, createAgentStatus('chart', 'complete'));
 
     return NextResponse.json(result);
   } catch (error) {
@@ -64,8 +61,13 @@ export async function POST(request: NextRequest) {
       });
     }
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error && error.message === 'UNAUTHENTICATED'
+            ? 'Unauthorized'
+            : 'Internal server error',
+      },
+      { status: error instanceof Error && error.message === 'UNAUTHENTICATED' ? 401 : 500 }
     );
   }
 }

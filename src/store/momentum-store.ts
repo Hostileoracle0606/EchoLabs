@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import type { ChartPayload, ReferencePayload, ContextPayload } from '@/types/events';
 import type { BuyingSignal, CallSummary, CoachingTip, ComplianceWarning, NextStep, Objection, SalesStage } from '@/types/sales';
 import type { TranscriptSpeaker } from '@/types/transcript';
+import type { AudioLevels } from '@/hooks/use-audio-analyser';
 
 interface SummaryBulletDisplay {
   id: string;
@@ -27,6 +28,9 @@ interface MomentumState {
   sessionId: string;
   callId: string;
   isRecording: boolean;
+
+  // Audio levels (for 3D aural blob)
+  audioLevels: AudioLevels;
 
   // Transcript
   transcriptChunks: TranscriptChunkDisplay[];
@@ -61,6 +65,7 @@ interface MomentumState {
     timestamp?: number,
     speakerId?: number
   ) => void;
+  setAudioLevels: (levels: AudioLevels) => void;
   setInterimText: (text: string) => void;
   addChart: (chart: ChartPayload) => void;
   addReferences: (refs: ReferencePayload) => void;
@@ -82,6 +87,7 @@ export const useMomentumStore = create<MomentumState>()(
     sessionId: '', // Initialize empty to avoid hydration mismatch
     callId: '',
     isRecording: false,
+    audioLevels: { bass: 0, mid: 0, treble: 0, amplitude: 0 },
     transcriptChunks: [],
     interimText: '',
     charts: [],
@@ -100,6 +106,11 @@ export const useMomentumStore = create<MomentumState>()(
     setRecording: (recording) =>
       set((state) => {
         state.isRecording = recording;
+      }),
+
+    setAudioLevels: (levels) =>
+      set((state) => {
+        state.audioLevels = levels;
       }),
 
     addTranscriptChunk: (text, isFinal, speaker = 'customer', timestamp = Date.now(), speakerId) =>
@@ -207,6 +218,7 @@ export const useMomentumStore = create<MomentumState>()(
         state.callSummary = null;
         state.agentStatuses = {};
         state.isRecording = false;
+        state.audioLevels = { bass: 0, mid: 0, treble: 0, amplitude: 0 };
       }),
 
     setSessionId: (id: string) =>

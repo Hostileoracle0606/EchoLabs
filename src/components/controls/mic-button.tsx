@@ -1,33 +1,115 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { useVoiceSession } from '@/hooks/use-voice-session';
-import { useMomentumStore } from '@/store/momentum-store';
+import { useDeepgram } from '@/hooks/use-deepgram';
+import { useAudioAnalyser } from '@/hooks/use-audio-analyser';
+import { useEchoLensStore } from '@/store/echolens-store';
+import { TranscriptBufferManager } from '@/lib/transcript-buffer';
 
 export function MicButton() {
-  const { isRecording, setRecording, sessionId, callId } =
-    useMomentumStore();
+  const { isRecording, setRecording, addTranscriptChunk, setInterimText, setAudioLevels, sessionId } =
+    useEchoLensStore();
 
-  const { start, stop } = useVoiceSession({
-    sessionId,
-    callId: callId || `call-${sessionId}`,
-    onError: (err) => console.error('[Voice]', err),
+  const bufferRef = useRef(new TranscriptBufferManager(sessionId));
+  const sendIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sweepIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const onTranscript = useCallback(
+    (text: string, isFinal: boolean) => {
+      if (isFinal) {
+        addTranscriptChunk(text, true);
+        bufferRef.current.addChunk(text, true);
+      } else {
+        setInterimText(text);
+      }
+    },
+    [addTranscriptChunk, setInterimText]
+  );
+
+  const { start: startDeepgram, stop: stopDeepgram, stream } = useDeepgram({
+    onTranscript,
+    onError: (err) => console.error('[Deepgram]', err),
   });
+
+  const getAudioData = useAudioAnalyser(stream);
+
+  // Pump audio levels into the store via requestAnimationFrame
+  useEffect(() => {
+    if (!isRecording) {
+      setAudioLevels({ bass: 0, mid: 0, treble: 0, amplitude: 0 });
+      return;
+    }
+
+    function tick() {
+      const levels = getAudioData();
+      setAudioLevels(levels);
+      rafRef.current = requestAnimationFrame(tick);
+    }
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [isRecording, getAudioData, setAudioLevels]);
+
+  const sendToOrchestrator = useCallback(async () => {
+    const text = bufferRef.current.flushUnsent();
+    if (!text.trim()) return;
+
+    try {
+      await fetch('/api/orchestrator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          timestamp: Date.now(),
+          sessionId,
+          context: bufferRef.current.getRollingTranscript(180000), // last 3 min
+        }),
+      });
+    } catch (err) {
+      console.error('[Orchestrator send]', err);
+    }
+  }, [sessionId]);
+
+  const sendSweep = useCallback(async () => {
+    const fullText = bufferRef.current.getRollingTranscript(180000);
+    if (!fullText.trim()) return;
+
+    try {
+      await fetch('/api/agents/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'sweep',
+          fullTranscript: fullText,
+          sessionId,
+        }),
+      });
+    } catch (err) {
+      console.error('[Summary sweep]', err);
+    }
+  }, [sessionId]);
 
   const handleToggle = useCallback(async () => {
     if (isRecording) {
-      stop();
+      stopDeepgram();
       setRecording(false);
+      if (sendIntervalRef.current) clearInterval(sendIntervalRef.current);
+      if (sweepIntervalRef.current) clearInterval(sweepIntervalRef.current);
+      await sendToOrchestrator();
     } else {
-      try {
-        await start();
-        setRecording(true);
-      } catch {
-        setRecording(false);
-      }
+      await startDeepgram();
+      setRecording(true);
+      sendIntervalRef.current = setInterval(sendToOrchestrator, 4000);
+      sweepIntervalRef.current = setInterval(sendSweep, 30000);
     }
-  }, [isRecording, start, stop, setRecording]);
+  }, [isRecording, startDeepgram, stopDeepgram, setRecording, sendToOrchestrator, sendSweep]);
 
   return (
     <motion.button

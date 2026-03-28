@@ -9,6 +9,7 @@ import type {
   SalesStage,
 } from './sales';
 import type { SchemaVersion, TranscriptSpeaker } from './transcript';
+import type { ChartSpec } from './charts';
 
 export type WsEventType =
   | 'transcript:update'
@@ -41,28 +42,44 @@ export interface WsMessage<T = unknown> {
 
 export interface ChartPayload {
   id?: string;
-  mermaidCode: string;
-  chartType: string;
-  title: string;
+  chartSpec: ChartSpec;
   sourceExcerpt: string;
   narration: string;
+  provenance?: {
+    sourceIds: string[];
+    connectorIds: string[];
+    syncedAt?: string;
+  };
 }
 
 export interface ReferencePayload {
   sources: {
+    sourceId: string;
+    connectorId: string;
+    connectorType: string;
+    syncedAt: string;
     title: string;
-    url: string;
+    url?: string;
     snippet: string;
     confidence: 'verified' | 'partial' | 'unverified';
     domain: string;
   }[];
   query: string;
+  provenance: {
+    sourceIds: string[];
+    connectorIds: string[];
+    syncedAt?: string;
+  };
 }
 
 export interface ContextPayload {
   matchType: 'email' | 'doc' | 'calendar' | 'slack';
   matches: {
     id: string;
+    sourceId: string;
+    connectorId: string;
+    connectorType: string;
+    syncedAt: string;
     title: string;
     preview: string;
     from?: string;
@@ -72,6 +89,11 @@ export interface ContextPayload {
     fileType?: string;
     relevanceScore: number;
   }[];
+  provenance: {
+    sourceIds: string[];
+    connectorIds: string[];
+    syncedAt?: string;
+  };
 }
 
 export interface SummaryPayload {

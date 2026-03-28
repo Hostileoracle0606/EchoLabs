@@ -11,12 +11,9 @@ const navLinks = [
     { label: 'The Aura', href: '#aura' },
 ];
 
-import { useAuth } from '@/contexts/mock-auth-context';
-
 export function Header() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { user, signIn, signOut, isLoading } = useAuth();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -61,44 +58,20 @@ export function Header() {
                         ))}
                     </nav>
 
-                    {/* Desktop Auth */}
+                    {/* Desktop CTA */}
                     <div className="hidden md:flex items-center gap-3">
-                        {isLoading ? (
-                            <div className="w-24 h-9 bg-slate-100 rounded-lg animate-pulse" />
-                        ) : user ? (
-                            <div className="flex items-center gap-3">
-                                <span className="text-sm font-medium text-[var(--foreground)]">
-                                    {user.name}
-                                </span>
-                                <button
-                                    onClick={() => signOut()}
-                                    className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors px-3 py-2"
-                                >
-                                    Sign Out
-                                </button>
-                                <Link
-                                    href="/app"
-                                    className="btn-primary text-sm py-2 px-4"
-                                >
-                                    Dashboard
-                                </Link>
-                            </div>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={() => signIn()}
-                                    className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors px-4 py-2"
-                                >
-                                    Sign In
-                                </button>
-                                <button
-                                    onClick={() => signIn()}
-                                    className="btn-primary text-sm py-2.5 px-5"
-                                >
-                                    Get Started
-                                </button>
-                            </>
-                        )}
+                        <Link
+                            href="/login"
+                            className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors px-4 py-2"
+                        >
+                            Sign In
+                        </Link>
+                        <Link
+                            href="/login"
+                            className="btn-primary text-sm py-2.5 px-5"
+                        >
+                            Launch Workspace
+                        </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -151,50 +124,20 @@ export function Header() {
                                 transition={{ delay: 0.3 }}
                                 className="mt-8 pt-8 border-t border-[var(--glass-border)] space-y-4"
                             >
-                                {user ? (
-                                    <>
-                                        <div className="text-center py-2 font-medium">
-                                            Hi, {user.name}
-                                        </div>
-                                        <Link
-                                            href="/app"
-                                            className="btn-primary block text-center"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                        >
-                                            Dashboard
-                                        </Link>
-                                        <button
-                                            onClick={() => {
-                                                signOut();
-                                                setIsMobileMenuOpen(false);
-                                            }}
-                                            className="block w-full text-center py-3 text-[var(--foreground-muted)]"
-                                        >
-                                            Sign Out
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button
-                                            onClick={() => {
-                                                signIn();
-                                                setIsMobileMenuOpen(false);
-                                            }}
-                                            className="block w-full text-center py-3 text-[var(--foreground-muted)]"
-                                        >
-                                            Sign In
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                signIn();
-                                                setIsMobileMenuOpen(false);
-                                            }}
-                                            className="btn-primary block w-full text-center"
-                                        >
-                                            Get Started
-                                        </button>
-                                    </>
-                                )}
+                                <Link
+                                    href="/login"
+                                    className="block w-full text-center py-3 text-[var(--foreground-muted)]"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    Sign In
+                                </Link>
+                                <Link
+                                    href="/login"
+                                    className="btn-primary block w-full text-center"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    Launch Workspace
+                                </Link>
                             </motion.div>
                         </nav>
                     </motion.div>

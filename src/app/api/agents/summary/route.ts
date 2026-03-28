@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 import { processSummaryIntent, processTranscriptSweep, getSessionBullets } from '@/services/summary/summary.service';
 import { broadcast } from '@/websocket/ws-server';
+import { requireViewer } from '@/server/foundation/auth';
+import { resolveWorkspaceProviderSecret } from '@/server/foundation/providers';
 
 const SummaryRequestSchema = z.object({
   intent: z.object({
@@ -23,6 +25,7 @@ const SweepRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const viewer = await requireViewer();
     const body = await request.json();
 
     // Check if this is a sweep request
@@ -35,7 +38,9 @@ export async function POST(request: NextRequest) {
 
       const result = await processTranscriptSweep(
         sweepParsed.data.fullTranscript,
-        sweepParsed.data.sessionId
+        sweepParsed.data.sessionId,
+        resolveWorkspaceProviderSecret(viewer.workspace.id, 'gemini', 'GEMINI_API_KEY') ||
+          undefined
       );
 
       if (result.bullets.length > 0) {
@@ -80,6 +85,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Summary Agent] Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error && error.message === 'UNAUTHENTICATED'
+            ? 'Unauthorized'
+            : 'Internal server error',
+      },
+      { status: error instanceof Error && error.message === 'UNAUTHENTICATED' ? 401 : 500 }
+    );
   }
 }

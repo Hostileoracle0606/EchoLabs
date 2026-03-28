@@ -1,11 +1,14 @@
 import type { ClassifiedIntent } from './intents';
 import type { SalesStage } from './sales';
+import type { ChartSpec } from './charts';
 
 export interface AgentRequest {
   intent: ClassifiedIntent;
   context: string;
   sessionId: string;
+  workspaceId?: string;
   fullTranscript?: string;
+  providerApiKey?: string;
 }
 
 export interface OrchestratorRequest {
@@ -17,6 +20,8 @@ export interface OrchestratorRequest {
   customerId?: string;
   speaker?: 'customer' | 'agent' | 'system';
   schemaVersion?: 1 | 2;
+  workspaceId?: string;
+  providerApiKey?: string;
 }
 
 export interface OrchestratorResponse {
@@ -24,35 +29,26 @@ export interface OrchestratorResponse {
   dispatched: string[];
 }
 
+<<<<<<< HEAD
 export interface SalesOrchestratorResponse {
   stage: SalesStage;
   objections: number;
   buyingSignals: number;
   nextSteps: number;
 }
-
-export type MermaidChartType =
-  | 'pie'
-  | 'xychart-beta'
-  | 'graph'
-  | 'mindmap'
-  | 'timeline'
-  | 'quadrantChart'
-  | 'sequenceDiagram'
-  | 'gantt'
-  | 'erDiagram';
-
 export interface ChartAgentResponse {
   id?: string;
-  mermaidCode: string;
-  chartType: MermaidChartType;
-  title: string;
+  chartSpec: ChartSpec;
   narration: string;
 }
 
 export interface Source {
+  sourceId: string;
+  connectorId: string;
+  connectorType: string;
+  syncedAt: string;
   title: string;
-  url: string;
+  url?: string;
   snippet: string;
   confidence: 'verified' | 'partial' | 'unverified';
   domain: string;
@@ -65,6 +61,10 @@ export interface ReferenceAgentResponse {
 
 export interface ContextMatch {
   id: string;
+  sourceId: string;
+  connectorId: string;
+  connectorType: string;
+  syncedAt: string;
   matchType: 'email' | 'doc' | 'calendar' | 'slack';
   title: string;
   preview: string;

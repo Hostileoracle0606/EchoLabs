@@ -37,13 +37,15 @@ export async function processSummaryIntent(request: AgentRequest): Promise<Summa
 
 export async function processTranscriptSweep(
   fullTranscript: string,
-  sessionId: string
+  sessionId: string,
+  providerApiKey?: string
 ): Promise<SummaryAgentResponse> {
   try {
     const response = await geminiGenerate({
       systemPrompt: SUMMARY_SWEEP_PROMPT,
       userPrompt: `Extract key points from this meeting transcript:\n\n"${fullTranscript}"`,
       jsonMode: true,
+      apiKey: providerApiKey,
     });
 
     const parsed = JSON.parse(response);

@@ -1,16 +1,28 @@
 import { GoogleGenAI } from '@google/genai';
+import crypto from 'crypto';
 
-let genaiInstance: GoogleGenAI | null = null;
+const genaiInstances = new Map<string, GoogleGenAI>();
 
-function getGenAI(): GoogleGenAI {
-  if (!genaiInstance) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY environment variable is not set');
-    }
-    genaiInstance = new GoogleGenAI({ apiKey });
+function resolveGeminiApiKey(apiKey?: string): string {
+  const resolvedApiKey = apiKey || process.env.GEMINI_API_KEY;
+  if (!resolvedApiKey) {
+    throw new Error('No Gemini API key is configured for this request');
   }
-  return genaiInstance;
+  return resolvedApiKey;
+}
+
+export function getGenAI(apiKey?: string): GoogleGenAI {
+  const resolvedApiKey = resolveGeminiApiKey(apiKey);
+  const cacheKey = crypto.createHash('sha256').update(resolvedApiKey).digest('hex');
+
+  const existing = genaiInstances.get(cacheKey);
+  if (existing) {
+    return existing;
+  }
+
+  const client = new GoogleGenAI({ apiKey: resolvedApiKey });
+  genaiInstances.set(cacheKey, client);
+  return client;
 }
 
 export interface GeminiGenerateOptions {
@@ -18,6 +30,7 @@ export interface GeminiGenerateOptions {
   systemPrompt: string;
   userPrompt: string;
   jsonMode?: boolean;
+  apiKey?: string;
 }
 
 /**
@@ -26,7 +39,6 @@ export interface GeminiGenerateOptions {
  */
 function generateMockResponse(options: GeminiGenerateOptions): string {
   const { systemPrompt, userPrompt } = options;
-  const lowerPrompt = userPrompt.toLowerCase();
   const lowerSystem = systemPrompt.toLowerCase();
 
   // Intent classification mock
@@ -126,9 +138,10 @@ export async function geminiGenerate(options: GeminiGenerateOptions): Promise<st
     systemPrompt,
     userPrompt,
     jsonMode = false,
+    apiKey,
   } = options;
 
-  const genai = getGenAI();
+  const genai = getGenAI(apiKey);
 
   const response = await genai.models.generateContent({
     model,
@@ -147,5 +160,5 @@ export async function geminiGenerate(options: GeminiGenerateOptions): Promise<st
 }
 
 export function resetGeminiClient(): void {
-  genaiInstance = null;
+  genaiInstances.clear();
 }

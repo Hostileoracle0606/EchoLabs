@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createServer, Server as HttpServer } from 'http';
 import WebSocket from 'ws';
 import {
@@ -7,13 +10,19 @@ import {
   getConnectedClientCount,
   resetWebSocketServer,
 } from './ws-server';
+import { createOrResumeSession } from '@/server/foundation/repository';
+import { SESSION_COOKIE_NAME } from '@/server/foundation/auth';
 
 let httpServer: HttpServer;
 let serverPort: number;
+let authCookie = '';
+let tempDir = '';
 
-function connectClient(): Promise<WebSocket> {
+function connectClient(cookie = authCookie): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`ws://localhost:${serverPort}/ws`);
+    const ws = new WebSocket(`ws://localhost:${serverPort}/ws`, {
+      headers: cookie ? { Cookie: cookie } : undefined,
+    });
     ws.on('open', () => resolve(ws));
     ws.on('error', reject);
   });
@@ -33,6 +42,17 @@ function delay(ms: number): Promise<void> {
 
 describe('WebSocketServer', () => {
   beforeEach(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'echolens-ws-'));
+    vi.stubEnv('ECHOLENS_DATA_FILE', path.join(tempDir, 'store.json'));
+    vi.stubEnv('APP_ENCRYPTION_KEY', 'test-encryption-secret');
+
+    const viewer = createOrResumeSession({
+      email: 'ws-test@example.com',
+      name: 'WS Test',
+      workspaceName: 'WS Workspace',
+    });
+    authCookie = `${SESSION_COOKIE_NAME}=${viewer.session.id}`;
+
     httpServer = createServer();
     initWebSocketServer(httpServer);
     await new Promise<void>((resolve) => {
@@ -45,10 +65,16 @@ describe('WebSocketServer', () => {
   });
 
   afterEach(async () => {
+    vi.unstubAllEnvs();
+    fs.rmSync(tempDir, { recursive: true, force: true });
     resetWebSocketServer();
     await new Promise<void>((resolve) => {
       httpServer.close(() => resolve());
     });
+  });
+
+  it('rejects unauthenticated WebSocket connections', async () => {
+    await expect(connectClient('')).rejects.toBeTruthy();
   });
 
   it('accepts WebSocket connections', async () => {
@@ -85,14 +111,20 @@ describe('WebSocketServer', () => {
     const msg1Promise = waitForMessage(ws1);
     const msg2Promise = waitForMessage(ws2);
 
-    broadcast('agent:chart', 'session-1', { mermaidCode: 'pie title Test' });
+    broadcast('agent:chart', 'session-1', {
+      chartSpec: {
+        kind: 'metric',
+        title: 'Test',
+        value: '40%',
+      },
+    });
 
     const [msg1, msg2] = await Promise.all([msg1Promise, msg2Promise]);
     const parsed1 = JSON.parse(msg1);
     const parsed2 = JSON.parse(msg2);
 
     expect(parsed1.event).toBe('agent:chart');
-    expect(parsed1.payload.mermaidCode).toBe('pie title Test');
+    expect(parsed1.payload.chartSpec.kind).toBe('metric');
     expect(parsed2.event).toBe('agent:chart');
 
     ws1.close();

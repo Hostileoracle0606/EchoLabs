@@ -1,7 +1,7 @@
 import { geminiGenerate } from '../gemini/gemini.client';
 import { CHART_GENERATION_PROMPT } from './prompts';
-import { validateMermaid, detectDiagramType } from './mermaid-validator';
-import type { AgentRequest, ChartAgentResponse, MermaidChartType } from '@/types/agents';
+import { ChartGenerationResponseSchema } from './chart-schema';
+import type { AgentRequest, ChartAgentResponse } from '@/types/agents';
 
 export async function generateChart(request: AgentRequest): Promise<ChartAgentResponse> {
   const { intent, context } = request;
@@ -12,28 +12,20 @@ export async function generateChart(request: AgentRequest): Promise<ChartAgentRe
       systemPrompt: CHART_GENERATION_PROMPT,
       userPrompt: `Data claim: "${intent.excerpt}"\nContext: ${context}`,
       jsonMode: true,
+      apiKey: request.providerApiKey,
     });
 
     console.log('[Chart Service] Gemini Response:', response);
 
-    let parsed;
-    try {
-      parsed = JSON.parse(response);
-    } catch (e) {
-      console.error('[Chart Service] JSON Parse Error:', e);
+    const parsed = ChartGenerationResponseSchema.safeParse(JSON.parse(response));
+    if (!parsed.success) {
       return createFallbackChart(intent.excerpt);
     }
 
-    if (parsed.mermaid) {
-      return {
-        mermaidCode: parsed.mermaid,
-        chartType: (detectDiagramType(parsed.mermaid) || parsed.diagramType || 'graph') as MermaidChartType,
-        title: parsed.title || 'Chart',
-        narration: parsed.narration || '',
-      };
-    }
-
-    return createFallbackChart(intent.excerpt);
+    return {
+      chartSpec: parsed.data.chart,
+      narration: parsed.data.narration || '',
+    };
   } catch (error) {
     console.error('[Chart Service] Error:', error);
     return createFallbackChart(intent.excerpt);
@@ -42,9 +34,13 @@ export async function generateChart(request: AgentRequest): Promise<ChartAgentRe
 
 function createFallbackChart(excerpt: string): ChartAgentResponse {
   return {
-    mermaidCode: `mindmap\n  root((Data Point))\n    ${excerpt.slice(0, 50)}`,
-    chartType: 'mindmap',
-    title: 'Data Point',
+    chartSpec: {
+      kind: 'metric',
+      title: 'Captured Claim',
+      value: 'Needs source data',
+      detail: excerpt.slice(0, 120),
+      trend: 'flat',
+    },
     narration: excerpt,
   };
 }
