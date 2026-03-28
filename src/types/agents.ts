@@ -19,7 +19,7 @@ export interface OrchestratorRequest {
   callId?: string;
   customerId?: string;
   speaker?: 'customer' | 'agent' | 'system';
-  schemaVersion?: 1 | 2;
+  schemaVersion?: number;
   workspaceId?: string;
   providerApiKey?: string;
 }
@@ -29,13 +29,13 @@ export interface OrchestratorResponse {
   dispatched: string[];
 }
 
-<<<<<<< HEAD
 export interface SalesOrchestratorResponse {
   stage: SalesStage;
   objections: number;
   buyingSignals: number;
   nextSteps: number;
 }
+
 export interface ChartAgentResponse {
   id?: string;
   chartSpec: ChartSpec;

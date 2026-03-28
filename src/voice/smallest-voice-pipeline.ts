@@ -51,6 +51,33 @@ type RuntimeSession = {
   ttsWs?: WebSocket;
 };
 
+class ConcurrencyGate {
+  private active = 0;
+  private queue: Array<() => void> = [];
+
+  constructor(private limit: number) {}
+
+  async acquire(): Promise<() => void> {
+    if (this.active < this.limit) {
+      this.active += 1;
+      return () => this.release();
+    }
+
+    return new Promise((resolve) => {
+      this.queue.push(() => {
+        this.active += 1;
+        resolve(() => this.release());
+      });
+    });
+  }
+
+  private release(): void {
+    this.active = Math.max(0, this.active - 1);
+    const next = this.queue.shift();
+    if (next) next();
+  }
+}
+
 export class SmallestVoicePipeline extends EventEmitter {
   private config: SmallestVoiceConfig;
   private sessions = new Map<string, RuntimeSession>();
@@ -364,32 +391,5 @@ export class SmallestVoicePipeline extends EventEmitter {
     }
 
     return undefined;
-  }
-}
-
-class ConcurrencyGate {
-  private active = 0;
-  private queue: Array<() => void> = [];
-
-  constructor(private limit: number) {}
-
-  async acquire(): Promise<() => void> {
-    if (this.active < this.limit) {
-      this.active += 1;
-      return () => this.release();
-    }
-
-    return new Promise((resolve) => {
-      this.queue.push(() => {
-        this.active += 1;
-        resolve(() => this.release());
-      });
-    });
-  }
-
-  private release(): void {
-    this.active = Math.max(0, this.active - 1);
-    const next = this.queue.shift();
-    if (next) next();
   }
 }

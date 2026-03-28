@@ -18,6 +18,7 @@
     "test:exhaustive": "npx tsx test-exhaustive.ts"
   },
   "dependencies": {
+    "@deepgram/sdk": "^4.11.3",
     "@google/genai": "^1.40.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",

@@ -118,7 +118,7 @@ export class MastraConversationRuntime {
   }
 
   private createWorkflowMap(): Map<ConversationState, MastraWorkflow> {
-    return new Map([
+    const workflows: Array<[ConversationState, MastraWorkflow]> = [
       [ConversationState.INTENT_DETECTION, new IntentRouterWorkflow()],
       [ConversationState.INTENT_CONFIRMATION, new IntentConfirmationWorkflow()],
       [ConversationState.SOLUTION_EXPLORATION, new SolutionExplorerWorkflow()],
@@ -126,7 +126,9 @@ export class MastraConversationRuntime {
       [ConversationState.OBJECTION_HANDLING, new ObjectionHandlerWorkflow()],
       [ConversationState.INTENT_RESOLUTION, new SolutionProposalWorkflow()],
       [ConversationState.CONVERSATION_REPAIR, new ConversationRepairWorkflow()]
-    ])
+    ]
+
+    return new Map(workflows)
   }
 
   async processTranscript(input: MastraConversationInput): Promise<MastraConversationOutput> {
@@ -176,7 +178,7 @@ export class MastraConversationRuntime {
     let workflowResponse = ''
     if (isUser) {
       const result = await session.controller.processTranscript(text)
-      workflowResponse = result.response || ''
+      workflowResponse = result || ''
     }
 
     await this.ensurePromptBuilder()

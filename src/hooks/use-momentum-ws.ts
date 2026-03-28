@@ -8,6 +8,7 @@ export function useMomentumWs() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const sessionId = useMomentumStore((s) => s.sessionId);
   const lastSessionIdRef = useRef<string>('');
+  const connectRef = useRef<() => void>(() => {});
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -117,7 +118,7 @@ export function useMomentumWs() {
     ws.onclose = () => {
       // Auto-reconnect after 2 seconds
       reconnectTimeoutRef.current = setTimeout(() => {
-        connect();
+        connectRef.current();
       }, 2000);
     };
 
@@ -125,6 +126,8 @@ export function useMomentumWs() {
       ws.close();
     };
   }, [sessionId]);
+
+  connectRef.current = connect;
 
   useEffect(() => {
     connect();
